@@ -1,0 +1,36 @@
+# dependencies (bun install)
+node_modules/
+
+# Python caches
+__pycache__/
+*.pyc
+
+# Native reference repo (dylib is committed in lib/)
+reference/
+
+# Rust build artifacts
+target/
+
+# Temporary test audio & logs
+test_*.wav
+*.tmp
+*.log
+
+# Output & coverage
+out/
+dist/
+coverage/
+*.lcov
+
+# Environment & caches
+.env
+.env.*
+.cache
+*.tsbuildinfo
+.eslintcache
+
+# IDE & OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
