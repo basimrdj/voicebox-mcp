@@ -170,7 +170,7 @@ To demonstrate true vocal decoupling, VoiceBox synthesizes the **exact same 7-wo
 
 Click play below to listen to all 7 subtexts and the neutral baseline spoken back-to-back (18s) with real-time animated frequency visualizers directly in GitHub:
 
-https://github.com/user-attachments/assets/505475ea-8bb8-4d14-9cc6-40329ee53f7e
+https://github.com/user-attachments/assets/2cd6c5a3-8358-492e-a876-2914f65bb103
 
 <br/>
 
@@ -178,16 +178,98 @@ https://github.com/user-attachments/assets/505475ea-8bb8-4d14-9cc6-40329ee53f7e
 
 Click play on any state below to listen directly in the README with live animated waveform frequency visualizers:
 
-| Subtext & State | Interactive Player (Live Visualizer) | Biophysical Laryngeal Controls | Expressive Acoustic Realization |
-| :--- | :--- | :--- | :--- |
-| **Neutral Baseline**<br/>`neutral` 😐 | <video src="https://github.com/user-attachments/assets/77e25558-013e-4e3b-b408-1f5726a0feff" controls width="320"></video><br/>[▶ **Play MP3**](demo/audio/neutral.mp3) • [WAV](demo/audio/neutral.wav) | **$R_d = 1.00$** (Modal glottis)<br/>**$P_s = 8.0\text{ cmH}_2\text{O}$**<br/>Vowel Warp: $0\%$ (Standard)<br/>Pitch: Declarative fall ($H^*\ L\text{-}L\%$) | Objective, balanced reference statement. Steady lung pressure, natural conversational tempo (~170 wpm), zero emotional leakage. |
-| **Passive Hostility**<br/>`passive_hostility` 🧊 | <video src="https://github.com/user-attachments/assets/e801d868-dc77-4102-99ca-f573df3fdac9" controls width="320"></video><br/>[▶ **Play MP3**](demo/audio/passive_hostility.mp3) • [WAV](demo/audio/passive_hostility.wav) | **$R_d = 0.45$** (Pressed phonation)<br/>**$P_s = 11.5\text{ cmH}_2\text{O}$**<br/>Vowel Warp: $-25\%$ (Clipped)<br/>Pitch: Rigid flat monotone ($<1.5\text{ st}$) | Polite words concealing cold resentment. Rigid pitch contour, tight vocal fold adduction, and icy, deliberate spacing between clipped syllables. |
-| **Genuine Curiosity**<br/>`curiosity` 🔍 | <video src="https://github.com/user-attachments/assets/94b7885b-2117-42a7-9db6-2a6418375a37" controls width="320"></video><br/>[▶ **Play MP3**](demo/audio/curiosity.mp3) • [WAV](demo/audio/curiosity.wav) | **$R_d = 1.25$** (Flow phonation)<br/>**$P_s = 9.0\text{ cmH}_2\text{O}$**<br/>Vowel Warp: $+25\%$ (Final syllable)<br/>Pitch: High-rising terminal glide ($L\text{-}H\%$) | Open intrigue and active questioning. Relaxed, resonant vocal folds, bright timbre, and an inquisitive terminal upward inflection on *"decision?"*. |
-| **Deadpan Sarcasm**<br/>`sarcasm` 🎭 | <video src="https://github.com/user-attachments/assets/900ebe2d-6a7d-429f-a7c4-ffde213c6e63" controls width="320"></video><br/>[▶ **Play MP3**](demo/audio/sarcasm.mp3) • [WAV](demo/audio/sarcasm.wav) | **$R_d = 0.70$** (Mixed glottal tilt)<br/>**$P_s = 10.5\text{ cmH}_2\text{O}$**<br/>Vowel Warp: $+45\%$ (Tonic nucleus)<br/>Pitch: Mocking rise-fall, deadpan coda | Tone explicitly contradicts surface meaning. Theatrical tonic elongation on *"completely fine"*, immediately collapsing into a dry, flat terminal coda. |
-| **Weary Exasperation**<br/>`exasperation` 😮‍💨 | <video src="https://github.com/user-attachments/assets/a2a16d47-0b45-45bb-804c-bc03371dfb1b" controls width="320"></video><br/>[▶ **Play MP3**](demo/audio/exasperation.mp3) • [WAV](demo/audio/exasperation.wav) | **$R_d = 1.80$** (Breathy glottis)<br/>**$P_s = 4.2\text{ cmH}_2\text{O}$** ($>50\%$ drop)<br/>Vowel Warp: $+15\%$ (Lethargic)<br/>Pitch: Downward decay into vocal fry | Running out of patience. An audible respiratory sigh dump at onset, followed by steep lung pressure collapse and trailing vocal fry. |
-| **Irritated Annoyance**<br/>`annoyance` 💢 | <video src="https://github.com/user-attachments/assets/2c57aed7-640a-4bfd-a250-c716eb79ff64" controls width="320"></video><br/>[▶ **Play MP3**](demo/audio/annoyance.mp3) • [WAV](demo/audio/annoyance.wav) | **$R_d = 0.55$** (Tense glottis)<br/>**$P_s = 13.0\text{ cmH}_2\text{O}$** (Tension surge)<br/>Vowel Warp: $-20\%$ (Staccato stops)<br/>Pitch: Sharp falling nuclear accent ($H+L^*$) | Curt, sharp impatience. Hurried tempo (1.20x), high vocal fold tension, emphatic stop closures, and clipped terminal cadence. |
-| **Shaky Anxiety**<br/>`anxiety` ⚡ | <video src="https://github.com/user-attachments/assets/486ec4ab-61d2-48e9-ae34-2de5f7eaf790" controls width="320"></video><br/>[▶ **Play MP3**](demo/audio/anxiety.mp3) • [WAV](demo/audio/anxiety.wav) | **$R_d = 1.15$** (Constricted glottis)<br/>**$P_s = 8.5\text{ cmH}_2\text{O}$** (Shallow breath)<br/>Vowel Warp: Micro-hesitations<br/>Pitch: Controlled modal pitch with nervous waver (~121 Hz) | Quiet apprehension and vulnerable hesitation. Natural male speaking register without shrieking; subtle throat constriction, shallow thoracic breath support, and cautious phrasing. |
-| **Quiet Dejection**<br/>`quiet_dejection` 🥀 | <video src="https://github.com/user-attachments/assets/fdf86eec-1400-4ead-bfd0-399e90796703" controls width="320"></video><br/>[▶ **Play MP3**](demo/audio/quiet_dejection.mp3) • [WAV](demo/audio/quiet_dejection.wav) | **$R_d = 2.20$** (Lax, breathy folds)<br/>**$P_s = 4.8\text{ cmH}_2\text{O}$** ($P_s \to P_{th}$)<br/>Vowel Warp: $+20\%$ (Subdued drag)<br/>Pitch: Depressed pitch floor, dying decay | Resigned defeat and quiet sorrow. Hypokinetic parasympathetic collapse, subdued amplitude, breathy spectral tilt, and fragile trailing silence. |
+#### 1. Neutral Baseline (`neutral` 😐)
+
+https://github.com/user-attachments/assets/743f0e9d-11d6-424d-ba67-96d305b7dbdf
+
+- **Biophysical Controls**: **$R_d = 1.00$** (Modal glottis) • **$P_s = 8.0\text{ cmH}_2\text{O}$** • Vowel Warp: $0\%$ • Pitch: Declarative fall ($H^*\ L\text{-}L\%$)
+- **Expressive Realization**: Objective, balanced reference statement. Steady lung pressure, natural conversational tempo (~170 wpm), zero emotional leakage.
+- **Direct Audio**: [▶ **Play MP3**](demo/audio/neutral.mp3) • [Download WAV](demo/audio/neutral.wav)
+
+---
+
+#### 2. Passive Hostility (`passive_hostility` 🧊)
+
+https://github.com/user-attachments/assets/aeff6322-547a-41b4-af8a-e08154159202
+
+- **Biophysical Controls**: **$R_d = 0.45$** (Pressed phonation) • **$P_s = 11.5\text{ cmH}_2\text{O}$** • Vowel Warp: $-25\%$ (Clipped) • Pitch: Rigid flat monotone ($<1.5\text{ st}$)
+- **Expressive Realization**: Polite words concealing cold resentment. Rigid pitch contour, tight vocal fold adduction, and icy, deliberate spacing between clipped syllables.
+- **Direct Audio**: [▶ **Play MP3**](demo/audio/passive_hostility.mp3) • [Download WAV](demo/audio/passive_hostility.wav)
+
+---
+
+#### 3. Genuine Curiosity (`curiosity` 🔍)
+
+https://github.com/user-attachments/assets/e9b9321b-bacb-446f-a2de-47160df6a60b
+
+- **Biophysical Controls**: **$R_d = 1.25$** (Flow phonation) • **$P_s = 9.0\text{ cmH}_2\text{O}$** • Vowel Warp: $+25\%$ (Final syllable) • Pitch: High-rising terminal glide ($L\text{-}H\%$)
+- **Expressive Realization**: Open intrigue and active questioning. Relaxed, resonant vocal folds, bright timbre, and an inquisitive terminal upward inflection on *"decision?"*.
+- **Direct Audio**: [▶ **Play MP3**](demo/audio/curiosity.mp3) • [Download WAV](demo/audio/curiosity.wav)
+
+---
+
+#### 4. Deadpan Sarcasm (`sarcasm` 🎭)
+
+https://github.com/user-attachments/assets/67a5b692-1b61-4314-be37-41823e849e8c
+
+- **Biophysical Controls**: **$R_d = 0.70$** (Mixed glottal tilt) • **$P_s = 10.5\text{ cmH}_2\text{O}$** • Vowel Warp: $+45\%$ (Tonic nucleus) • Pitch: Mocking rise-fall, deadpan coda
+- **Expressive Realization**: Tone explicitly contradicts surface meaning. Theatrical tonic elongation on *"completely fine"*, immediately collapsing into a dry, flat terminal coda.
+- **Direct Audio**: [▶ **Play MP3**](demo/audio/sarcasm.mp3) • [Download WAV](demo/audio/sarcasm.wav)
+
+---
+
+#### 5. Weary Exasperation (`exasperation` 😮‍💨)
+
+https://github.com/user-attachments/assets/08fce3f1-dfe7-4cfc-8281-8fde43e35fec
+
+- **Biophysical Controls**: **$R_d = 1.80$** (Breathy glottis) • **$P_s = 4.2\text{ cmH}_2\text{O}$** ($>50\%$ drop) • Vowel Warp: $+15\%$ (Lethargic) • Pitch: Downward decay into vocal fry
+- **Expressive Realization**: Running out of patience. An audible respiratory sigh dump at onset, followed by steep lung pressure collapse and trailing vocal fry.
+- **Direct Audio**: [▶ **Play MP3**](demo/audio/exasperation.mp3) • [Download WAV](demo/audio/exasperation.wav)
+
+---
+
+#### 6. Irritated Annoyance (`annoyance` 💢)
+
+https://github.com/user-attachments/assets/31797c29-9064-444d-ad36-e0728495ef19
+
+- **Biophysical Controls**: **$R_d = 0.55$** (Tense glottis) • **$P_s = 13.0\text{ cmH}_2\text{O}$** (Tension surge) • Vowel Warp: $-20\%$ (Staccato stops) • Pitch: Sharp falling nuclear accent ($H+L^*$)
+- **Expressive Realization**: Curt, sharp impatience. Hurried tempo (1.20x), high vocal fold tension, emphatic stop closures, and clipped terminal cadence.
+- **Direct Audio**: [▶ **Play MP3**](demo/audio/annoyance.mp3) • [Download WAV](demo/audio/annoyance.wav)
+
+---
+
+#### 7. Shaky Anxiety (`anxiety` ⚡)
+
+https://github.com/user-attachments/assets/b0a92e94-0384-40ab-99d6-54c6a12fb7d6
+
+- **Biophysical Controls**: **$R_d = 1.20$** (Constricted glottis) • **$P_s = 8.5\text{ cmH}_2\text{O}$** (Shallow breath) • **$\mathbf{5.8\text{ Hz}}$ Laryngeal Tremor** ($\pm 1.1\text{ st}$ FM, $20\%$ phase-locked AM) • 1.4–3.8 kHz Aspiration Friction • Natural Modal Register (Mean $F_0 \approx 118\text{ Hz}$, Peak $< 158\text{ Hz}$)
+- **Expressive Realization**: Grounded in physiological acoustics (Ramig & Shipp 1987, Scherer 2003). Natural male speaking register with audible neuromuscular vocal tremor and shallow breath friction—delivering authentic apprehensive vulnerability without shrieking or falsetto distortion.
+- **Direct Audio**: [▶ **Play MP3**](demo/audio/anxiety.mp3) • [Download WAV](demo/audio/anxiety.wav)
+
+---
+
+#### 8. Quiet Dejection (`quiet_dejection` 🥀)
+
+https://github.com/user-attachments/assets/0e8292ee-7168-4832-ab0f-69b55d2c1ca8
+
+- **Biophysical Controls**: **$R_d = 2.20$** (Lax, breathy folds) • **$P_s = 4.8\text{ cmH}_2\text{O}$** ($P_s \to P_{th}$) • Vowel Warp: $+20\%$ (Subdued drag) • Pitch: Depressed pitch floor, dying decay
+- **Expressive Realization**: Resigned defeat and quiet sorrow. Hypokinetic parasympathetic collapse, subdued amplitude, breathy spectral tilt, and fragile trailing silence.
+- **Direct Audio**: [▶ **Play MP3**](demo/audio/quiet_dejection.mp3) • [Download WAV](demo/audio/quiet_dejection.wav)
+
+---
+
+### 📊 Biophysical Parameter Comparison Matrix
+
+| Subtext & State | $R_d$ (Glottis) | $P_s$ (Lung Press.) | Vowel Warp | Pitch / Intonation Contour | Primary Acoustic Mechanism |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Neutral Baseline** (`neutral` 😐) | **$1.00$** (Modal) | $8.0\text{ cmH}_2\text{O}$ | $0\%$ | Declarative fall ($H^*\ L\text{-}L\%$) | Objective reference statement, steady lung pressure |
+| **Passive Hostility** (`passive_hostility` 🧊) | **$0.45$** (Pressed) | $11.5\text{ cmH}_2\text{O}$ | $-25\%$ (Clipped) | Rigid flat monotone ($<1.5\text{ st}$) | Tense adduction, cold staccato spacing |
+| **Genuine Curiosity** (`curiosity` 🔍) | **$1.25$** (Flow) | $9.0\text{ cmH}_2\text{O}$ | $+25\%$ (Final) | High-rising terminal glide ($L\text{-}H\%$) | Resonant brightness, inquisitive question inflection |
+| **Deadpan Sarcasm** (`sarcasm` 🎭) | **$0.70$** (Mixed) | $10.5\text{ cmH}_2\text{O}$ | $+45\%$ (Tonic) | Mocking rise-fall, deadpan coda | Theatrical tonic elongation, ironic pitch dive |
+| **Weary Exasperation** (`exasperation` 😮‍💨) | **$1.80$** (Breathy) | $4.2\text{ cmH}_2\text{O}$ | $+15\%$ (Lethargic) | Downward decay into vocal fry | Involuntary sigh dump, subglottal pressure collapse |
+| **Irritated Annoyance** (`annoyance` 💢) | **$0.55$** (Tense) | $13.0\text{ cmH}_2\text{O}$ | $-20\%$ (Staccato) | Sharp falling nuclear accent ($H+L^*$) | Fast tempo (1.20x), clipped stops, tension surge |
+| **Shaky Anxiety** (`anxiety` ⚡) | **$1.20$** (Constricted) | $8.5\text{ cmH}_2\text{O}$ | Micro-hesitations | 5.8 Hz Laryngeal Tremor (FM+AM) | Physiological neuromuscular waver, shallow breath |
+| **Quiet Dejection** (`quiet_dejection` 🥀) | **$2.20$** (Breathy) | $4.8\text{ cmH}_2\text{O}$ | $+20\%$ (Drift) | Hypokinetic decay toward silence | Lax vocal folds, dying amplitude, subdued acoustic decay |
 
 ---
 

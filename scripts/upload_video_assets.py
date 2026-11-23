@@ -41,7 +41,8 @@ for fname in files_to_upload:
     upload_url = f"https://uploads.github.com/user-attachments/assets?name={fname}&content_type=video/mp4&repository_id={repo_id}"
     headers = {
         "Authorization": f"Bearer {token}",
-        "Accept": "application/json"
+        "Accept": "application/json",
+        "Content-Type": "video/mp4",
     }
 
     with open(fpath, "rb") as f:

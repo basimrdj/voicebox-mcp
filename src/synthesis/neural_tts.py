@@ -23,7 +23,7 @@ SUBTEXT_INSTRUCTIONS = {
     "sarcasm": "Speak in a dry, mockingly theatrical voice with heavy sardonic emphasis and deadpan irony.",
     "exasperation": "Speak in an exhausted, breathy voice with a weary sigh and complete exasperation.",
     "annoyance": "Speak in an impatient, curt, sharp voice with clipped words and controlled annoyance.",
-    "anxiety": "Speak in a quiet, nervous, slightly hesitant voice with subtle trembling in the throat, shallow breathiness, and tense restraint.",
+    "anxiety": "Speak in a nervous, trembling voice, filled with anxiety. Subtle throat tremor, shaky quavering tone, frightened.",
     "quiet_dejection": "Speak in a soft, sad, subdued, fragile voice with quiet resignation and sorrow.",
 }
 
@@ -56,10 +56,7 @@ def format_subtext_prompt(text: str, subtext: str) -> str:
         # Emphatic, curt, sharp exclamation
         return clean_text + "!"
     elif subtext == "anxiety":
-        # Hesitant, cautious phrasing without repeating words
-        words = clean_text.split()
-        if len(words) >= 4:
-            return f"{words[0]} {words[1]}, {words[2]} {words[3]}, {' '.join(words[4:])}."
+        # Fragile nervous delivery without changing lexical text
         return clean_text + "."
     elif subtext == "quiet_dejection":
         # Slow, heavy, subdued trailing resignation
@@ -106,10 +103,24 @@ def apply_emotion_postprocessing(
             float_audio = float_audio + (0.30 * subtext_intensity) * high_freq
 
         elif subtext == "anxiety":
-            # Shallow breathiness and tense laryngeal constriction without artificial ring modulation
-            sos = signal.butter(2, [1200, 3500], 'bandpass', fs=sr, output='sos')
-            mid_freq = signal.sosfilt(sos, float_audio)
-            float_audio = float_audio + (0.12 * subtext_intensity) * mid_freq
+            # Physiological vocal tremor: phase-coupled frequency & amplitude modulation (Ramig & Shipp 1987)
+            tremor_rate = 5.8
+            omega = 2.0 * np.pi * tremor_rate
+            depth_semi = 1.10 * subtext_intensity
+            k = (depth_semi * np.log(2.0) / 12.0)
+            tau = t - (k / omega) * (np.cos(omega * t) - 1.0)
+            sample_tau = np.clip(tau * sr, 0, len(float_audio) - 2)
+            idx0 = sample_tau.astype(int)
+            frac = sample_tau - idx0
+            fm_audio = (1.0 - frac) * float_audio[idx0] + frac * float_audio[idx0 + 1]
+
+            am_env = 1.0 + (0.20 * subtext_intensity) * np.sin(omega * t - np.pi / 6.0)
+            float_audio = fm_audio * am_env
+
+            # Shallow breathiness and tense laryngeal constriction
+            sos = signal.butter(2, [1400, 3800], 'bandpass', fs=sr, output='sos')
+            breath = signal.sosfilt(sos, float_audio)
+            float_audio = float_audio + (0.08 * subtext_intensity) * breath
 
         elif subtext == "exasperation":
             # Involuntary respiratory sigh dump (lung pressure Ps collapses over time)
@@ -213,7 +224,7 @@ def generate_speech(
     elif subtext == "annoyance":
         speed *= 1.20
     elif subtext == "anxiety":
-        speed *= 0.95
+        speed *= 0.90
     elif subtext == "exasperation":
         speed *= 0.90
 
