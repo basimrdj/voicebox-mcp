@@ -20,6 +20,7 @@ import { describe, it, expect } from "bun:test";
 import { PhonemePlanner } from "../src/synthesis/phoneme_planner.ts";
 import { SynthesisOrchestrator } from "../src/synthesis/synthesis_orchestrator.ts";
 import { ChimeraEngine } from "../src/ffi/engine.ts";
+import { isNativeChimeraAvailable } from "../src/ffi/bindings.ts";
 
 describe("Milestone 1: Phoneme-Level Articulatory & Speech Production", () => {
   const orchestrator = new SynthesisOrchestrator();
@@ -138,18 +139,20 @@ describe("Milestone 1: Phoneme-Level Articulatory & Speech Production", () => {
     expect(ddspResult.trajectory.frames.length).toBeGreaterThan(20);
 
     // 2. Test Physical Transmission Waveguide Pathway (with C-ABI ChimeraEngine)
-    const chimera = new ChimeraEngine(48000);
-    const physicalOrch = new SynthesisOrchestrator(chimera);
-    const physicalResult = await physicalOrch.synthesizeSpeech({
-      text,
-      intent: "neutral",
-      engine: "physical",
-    });
+    if (isNativeChimeraAvailable()) {
+      const chimera = new ChimeraEngine(48000);
+      const physicalOrch = new SynthesisOrchestrator(chimera);
+      const physicalResult = await physicalOrch.synthesizeSpeech({
+        text,
+        intent: "neutral",
+        engine: "physical",
+      });
 
-    expect(physicalResult.engineUsed).toBe("physical");
-    expect(physicalResult.samples.length).toBeGreaterThan(0);
-    expect(physicalResult.durationMs).toBeGreaterThan(500);
-    expect(physicalResult.perception.rms).toBeGreaterThan(0.01);
-    chimera.destroy();
+      expect(physicalResult.engineUsed).toBe("physical");
+      expect(physicalResult.samples.length).toBeGreaterThan(0);
+      expect(physicalResult.durationMs).toBeGreaterThan(500);
+      expect(physicalResult.perception.rms).toBeGreaterThan(0.01);
+      chimera.destroy();
+    }
   });
 });

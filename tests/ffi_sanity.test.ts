@@ -1,8 +1,13 @@
 import { describe, it, expect, afterAll } from "bun:test";
-import { symbols, callJson } from "../src/ffi/bindings.ts";
+import { symbols, callJson, isNativeChimeraAvailable } from "../src/ffi/bindings.ts";
 import { ChimeraEngine } from "../src/ffi/engine.ts";
 
 describe("FFI & C-ABI Sanity", () => {
+  if (!isNativeChimeraAvailable()) {
+    it.skip("skips C-ABI tests when libchimera_wasm dynamic library is not present", () => {});
+    return;
+  }
+
   let engine: ChimeraEngine;
 
   it("checks layout version and gesture record size", () => {
