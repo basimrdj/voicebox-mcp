@@ -1,5 +1,13 @@
 {
   "name": "voicebox-mcp",
+  "version": "2.0.0",
+  "description": "The Biophysical Vocal Tract & Subtextual Prosody Engine for AI Agents",
+  "author": "Basim",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/basimrdj/voicebox-mcp.git"
+  },
   "module": "index.ts",
   "type": "module",
   "private": true,

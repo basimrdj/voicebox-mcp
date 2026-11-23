@@ -15,9 +15,24 @@
 [![Tests](https://img.shields.io/badge/Tests-80%20passed%20(87k%20asserts)-success?style=flat-square)](https://github.com/basimrdj/voicebox-mcp)
 [![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
 
-[Quickstart](#quickstart) • [The 7 Subtexts](#the-7-conversational-subtexts) • [Why VoiceBox?](#why-voicebox-vs-conventional-tts) • [Agent Skill](#-universal-agent-skill-integration-skillmd) • [MCP Tools](#mcp-tools-reference-18-tools)
+[Quickstart](#quickstart) • [Upstream Attribution](#upstream-attribution--differentiation) • [The 7 Subtexts](#the-7-conversational-subtexts) • [Why VoiceBox?](#why-voicebox-vs-conventional-tts) • [Agent Skill](#-universal-agent-skill-integration-skillmd) • [MCP Tools](#mcp-tools-reference-16-standard--2-developmental)
 
 </div>
+
+---
+
+## Upstream Attribution & Differentiation
+
+VoiceBox's native physical acoustic waveguide builds upon the open-source **[CHIMERA](https://github.com/jamesondh/chimera-vocal-synth)** physical-modeling voice synthesizer created by **Jameson Hodge**. CHIMERA provides the underlying 1D transmission-line vocal tract simulation, airway mechanics, and gestural score scheduling.
+
+### VoiceBox's Novel Differentiation
+
+While CHIMERA implements the core physical airway and articulatory gestural mechanics, VoiceBox extends this foundation into the autonomous AI agent ecosystem by contributing:
+
+1. **Universal Agent MCP Architecture**: Exposes 16+ biophysical control tools over standard Model Context Protocol (`stdio` JSON-RPC) and universal agent skills (`SKILL.md`) across Claude Code, Cursor, Windsurf, Antigravity, and LangChain/CrewAI.
+2. **Dual-Pathway Vocal Psychology Engine**: Simulates involuntary limbic-PAG emotional leakage ($R_d$ glottal flow dynamics, subglottal pressure surges, $C^1$-continuous micro-glottal stops, 8.5 Hz neuromuscular tremors, and metrical phonology time-warping).
+3. **Hybrid Resonator Layers & Streaming**: Integrates a BioNavb DDSP formant resonator bank with Gunnar Fant differential LF flow, Ingo Titze supraglottal inertance coupling, and smooth inter-chunk state tracking.
+4. **Closed-Loop DIVA Sensorimotor Loop**: Provides auditory self-perception (`listen_to_self`) and autonomous motor babbling for AI agents to calibrate their own vowel space.
 
 ---
 
@@ -35,8 +50,9 @@ Most AI speech engines treat voice like a text-translation pipeline: text goes i
 | **Tone Decoupling** | Impossible (text dictates vocal mood) | **Dual-Pathway (Polite words, cold tension leakage)** |
 | **Non-Verbal Reflexes** | Hallucinated or incoherent | **Physiological 3-phase sighs, 5 Hz laughter, sobs** |
 | **Singing Mechanics** | Synthetic autotune approximations | **1:6 Epilaryngeal resonance (Singer's Formant) + vibrato** |
-| **Cost & Latency** | Expensive per-character cloud API tokens | **100% Free & Local (<3ms C-ABI / on-device MLX)** |
-| **Harness Compatibility** | Cloud webhook / custom SDKs | **Native MCP stdio + Universal Agent Skill (`SKILL.md`)** |
+| **Cost & Latency** | Cloud API charges per character (~200–500ms roundtrip) | **100% Local**: Native C-ABI waveguide renders at ~1–3ms per buffer; neural/Python subtext layer is ~150–400ms |
+| **Barge-In Interruption** | Requires terminating cloud stream session | **Sub-25ms native stream cancel** via exponential pressure decay and buffer flush |
+| **Harness Compatibility** | Cloud webhook / custom proprietary SDKs | **Native MCP stdio + Universal Agent Skill (`SKILL.md`)** |
 
 ---
 
@@ -81,16 +97,35 @@ flowchart TD
 
 ## Quickstart
 
-### 1. Installation
+### 1. Installation & Platform Setup
 
+#### macOS (Apple Silicon)
+A pre-compiled native library (`lib/libchimera_wasm.dylib`) is included for Apple Silicon:
 ```bash
-# Clone the repository
 git clone https://github.com/basimrdj/voicebox-mcp.git
 cd voicebox-mcp
-
-# Install dependencies (requires Bun runtime)
 bun install
 ```
+
+#### Linux (`x86_64` / `aarch64`)
+On Linux environments, compile the shared library (`libchimera_wasm.so`) from the upstream CHIMERA Rust engine:
+```bash
+# Clone upstream and build the C-ABI shared library
+git clone https://github.com/jamesondh/chimera-vocal-synth.git reference/chimera-vocal-synth
+cd reference/chimera-vocal-synth && cargo build --release -p chimera-wasm
+cp target/release/libchimera_wasm.so ../../lib/
+cd ../..
+bun install
+```
+*(Alternatively, set `CHIMERA_LIB_PATH=/path/to/libchimera_wasm.so`)*
+
+#### Synthesis Tiers & Optional Dependencies
+VoiceBox employs a tiered synthesis fallback pipeline:
+1. **Native Biophysical Waveguide (Primary, Local)**: Uses Bun FFI + `libchimera_wasm` for real-time 48 kHz transmission-line synthesis with zero external dependencies.
+2. **Neural Subtext Conditioning (Optional)**: If running high-level neural subtext reshaping via `src/synthesis/neural_tts.py`, install Python packages: `pip install -r requirements.txt` (NumPy, SciPy, and optional MLX/PyTorch).
+3. **System Fallback**: On macOS, if neural dependencies are unavailable during high-level TTS calls, the engine can fall back to the system speech synthesizer (`say`) before applying LPC formant filtering and subtext prosody reshaping.
+
+---
 
 ### 2. Instant Audio CLI
 
@@ -145,9 +180,9 @@ VoiceBox is packaged with a universal Agent Skill adhering to the open [`agentsk
 
 ---
 
-## MCP Tools Reference (18 Tools)
+## MCP Tools Reference (16 Standard + 2 Developmental)
 
-VoiceBox exposes 18 native biophysical tools through standard `stdio` (JSON-RPC 2.0):
+VoiceBox exposes **16 core biophysical tools** by default through standard `stdio` (JSON-RPC 2.0):
 
 ```json
 {
@@ -159,6 +194,10 @@ VoiceBox exposes 18 native biophysical tools through standard `stdio` (JSON-RPC 
   }
 }
 ```
+
+> [!NOTE]
+> **Enabling Developmental Learning Tools**: 
+> Two developmental sensorimotor learning tools (`learn_articulatory_target` and `curiosity_babble` in Domain 4) are gated behind the environment variable `VOICEBOX_ENABLE_LEARNING=1`, because iterative gradient descent mutates articulatory state.
 
 ### 1. Speech & Subtext
 - `speak_text`: Natural speech synthesis with `subtext`, `subtextIntensity`, `emotion`, and `intonation`.
@@ -180,8 +219,8 @@ VoiceBox exposes 18 native biophysical tools through standard `stdio` (JSON-RPC 
 ### 4. Perception & DIVA Sensorimotor Learning
 - `listen_to_self`: Auditory perception extracting $f_0$, formants $F_1–F_4$, HNR, RMS, and spectral centroid.
 - `map_vowel_space`: Acoustic exploration of the phonetic vowel quadrilateral.
-- `learn_articulatory_target`: Closed-loop DIVA sensorimotor motor error gradient descent.
-- `curiosity_babble`: Intrinsically motivated self-supervised vocal tract exploration.
+- `learn_articulatory_target` *(requires `VOICEBOX_ENABLE_LEARNING=1`)*: Closed-loop DIVA sensorimotor motor error gradient descent.
+- `curiosity_babble` *(requires `VOICEBOX_ENABLE_LEARNING=1`)*: Intrinsically motivated self-supervised vocal tract exploration.
 
 ### 5. Conversational Streaming & Barge-In
 - `stream_phonemic_speech`: Word-by-word streaming generation without filter transient clicks.
@@ -190,9 +229,9 @@ VoiceBox exposes 18 native biophysical tools through standard `stdio` (JSON-RPC 
 
 ---
 
-## Automated Verification
+## Automated Verification & Benchmarks
 
-VoiceBox features an exhaustive automated test suite with 87,500+ assertions verifying acoustic physics, differential flow conservation, and MCP tool conformance:
+VoiceBox features an automated test suite with 87,500+ assertions verifying acoustic physics, differential flow conservation, and MCP tool conformance:
 
 ```bash
 bun test
@@ -213,8 +252,13 @@ tests/ffi_sanity.test.ts         -  6 passed
 Ran 80 tests across 7 files. [22.88s]
 ```
 
+### Benchmark Scope & Technical Notes
+- **Acoustic Physics vs. MOS**: The automated test suite rigorously validates physical conservation laws (Gunnar Fant zero-integral glottal flow conservation $\int_0^{T_0} E(t) dt = 0$, Ingo Titze inertance stability), task-dynamic articulator ODE tracking, metrical phonology time-warp monotonicity, and MCP schema conformance. It does not measure subjective Mean Opinion Scores (MOS).
+- **Latency Scope**: The sub-25ms conversational barge-in latency applies specifically to the **native streaming audio queue** (`control_voice_stream` cancel signal via exponential lung pressure decay and ring buffer flushing), enabling immediate interruption when a user speaks over the agent. High-level batch TTS calls routed through the Python subtext conditioning layer execute as out-of-process jobs (with a 25s timeout safety margin).
+
 ---
 
-## License
+## License & Credits
 
-MIT License. Designed and authored by [Basim](https://github.com/basimrdj).
+- **VoiceBox MCP**: Licensed under the [MIT License](LICENSE). Copyright (c) 2026 Basim.
+- **Upstream Engine (CHIMERA)**: The physical vocal synthesis engine builds upon [CHIMERA](https://github.com/jamesondh/chimera-vocal-synth), Copyright (c) 2026 Jameson Hodge, used under the MIT License.

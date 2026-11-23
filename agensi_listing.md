@@ -12,6 +12,7 @@ Use this document to submit or publish **VoiceBox** on [Agensi.io](https://agens
 - **Pricing**: `Free ($0)` *(Recommended for maximum developer adoption & GitHub stars)*
 - **GitHub Repository**: [https://github.com/basimrdj/voicebox-mcp](https://github.com/basimrdj/voicebox-mcp)
 - **Author**: Basim (`@basimrdj`)
+- **Upstream Engine**: Built upon the open-source [CHIMERA](https://github.com/jamesondh/chimera-vocal-synth) vocal synthesizer by Jameson Hodge (MIT)
 - **License**: MIT
 
 ---

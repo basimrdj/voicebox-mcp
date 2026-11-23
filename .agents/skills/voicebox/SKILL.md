@@ -62,6 +62,8 @@ graph TD
     end
 ```
 
+> **Note on Tool Registration**: By default, VoiceBox registers 16 core tools across domains 1, 2, 3, 4 (perception), and 5. The two developmental closed-loop learning tools (`learn_articulatory_target` and `curiosity_babble`) require setting `VOICEBOX_ENABLE_LEARNING=1` in your environment.
+
 ---
 
 ## 1. Speaking with Nuanced Conversational Subtext (`speak_text`)
