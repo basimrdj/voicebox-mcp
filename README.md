@@ -168,93 +168,95 @@ To demonstrate true vocal decoupling, VoiceBox synthesizes the **exact same 7-wo
 
 ### 🎬 Master Audio Showcase (Continuous Comparison)
 
-Click play below to listen to all 7 subtexts and the neutral baseline spoken back-to-back (18s) with real-time animated frequency visualizers directly in GitHub:
+Click below to watch and listen to all 7 subtexts and the neutral baseline spoken back-to-back (18s) with real-time animated frequency visualizers:
 
-https://github.com/user-attachments/assets/62193daf-fd72-4efb-a07c-7d8b69dd6604
+[![Master Audio Showcase](demo/video/anxiety.gif)](https://github.com/basimrdj/voicebox-mcp/releases/download/v1.0.0/subtext_master_showcase.mp4)
+
+> [▶ **Watch / Download Continuous Master Showcase (18s MP4)**](https://github.com/basimrdj/voicebox-mcp/releases/download/v1.0.0/subtext_master_showcase.mp4)
 
 <br/>
 
-### 🎧 Individual Subtext Audio Players (Click Play to Listen)
+### 🎧 Individual Subtext Showcases (Real-Time Animated Visualizers)
 
-Click play on any state below to listen directly in the README with live animated waveform frequency visualizers:
+Every subtext is rendered below with its live frequency spectrum visualizer and direct lossless audio links:
 
 #### 1. Neutral Baseline (`neutral` 😐)
 
-https://github.com/user-attachments/assets/6af283e1-0794-4729-a3aa-b10091376e44
+[![Neutral Baseline Visualizer](demo/video/neutral.gif)](demo/audio/neutral.mp3)
 
 - **Biophysical Controls**: **$R_d = 1.00$** (Modal glottis) • **$P_s = 8.0\text{ cmH}_2\text{O}$** • Vowel Warp: $0\%$ • Pitch: Declarative fall ($H^*\ L\text{-}L\%$)
 - **Expressive Realization**: Objective, balanced reference statement. Steady lung pressure, natural conversational tempo (~170 wpm), zero emotional leakage.
-- **Direct Audio**: [▶ **Play MP3**](demo/audio/neutral.mp3) • [Download WAV](demo/audio/neutral.wav)
+- **Direct Media**: [▶ **Play MP3**](demo/audio/neutral.mp3) • [Download WAV](demo/audio/neutral.wav) • [🎬 HD Video MP4](https://github.com/basimrdj/voicebox-mcp/releases/download/v1.0.0/neutral.mp4)
 
 ---
 
 #### 2. Passive Hostility (`passive_hostility` 🧊)
 
-https://github.com/user-attachments/assets/d5539ec6-3ff3-4f7f-bb25-414aaa4f6162
+[![Passive Hostility Visualizer](demo/video/passive_hostility.gif)](demo/audio/passive_hostility.mp3)
 
 - **Biophysical Controls**: **$R_d = 0.45$** (Pressed phonation) • **$P_s = 11.5\text{ cmH}_2\text{O}$** • Vowel Warp: $-25\%$ (Clipped) • Pitch: Rigid flat monotone ($<1.5\text{ st}$)
 - **Expressive Realization**: Polite words concealing cold resentment. Rigid pitch contour, tight vocal fold adduction, and icy, deliberate spacing between clipped syllables.
-- **Direct Audio**: [▶ **Play MP3**](demo/audio/passive_hostility.mp3) • [Download WAV](demo/audio/passive_hostility.wav)
+- **Direct Media**: [▶ **Play MP3**](demo/audio/passive_hostility.mp3) • [Download WAV](demo/audio/passive_hostility.wav) • [🎬 HD Video MP4](https://github.com/basimrdj/voicebox-mcp/releases/download/v1.0.0/passive_hostility.mp4)
 
 ---
 
 #### 3. Genuine Curiosity (`curiosity` 🔍)
 
-https://github.com/user-attachments/assets/b79c0671-e6ae-4bed-b57a-f10a34eaabca
+[![Curiosity Visualizer](demo/video/curiosity.gif)](demo/audio/curiosity.mp3)
 
 - **Biophysical Controls**: **$R_d = 1.25$** (Flow phonation) • **$P_s = 9.0\text{ cmH}_2\text{O}$** • Vowel Warp: $+25\%$ (Final syllable) • Pitch: High-rising terminal glide ($L\text{-}H\%$)
 - **Expressive Realization**: Open intrigue and active questioning. Relaxed, resonant vocal folds, bright timbre, and an inquisitive terminal upward inflection on *"decision?"*.
-- **Direct Audio**: [▶ **Play MP3**](demo/audio/curiosity.mp3) • [Download WAV](demo/audio/curiosity.wav)
+- **Direct Media**: [▶ **Play MP3**](demo/audio/curiosity.mp3) • [Download WAV](demo/audio/curiosity.wav) • [🎬 HD Video MP4](https://github.com/basimrdj/voicebox-mcp/releases/download/v1.0.0/curiosity.mp4)
 
 ---
 
 #### 4. Deadpan Sarcasm (`sarcasm` 🎭)
 
-https://github.com/user-attachments/assets/dde62e3f-4c5e-4803-9f6f-42d26cffabdb
+[![Sarcasm Visualizer](demo/video/sarcasm.gif)](demo/audio/sarcasm.mp3)
 
 - **Biophysical Controls**: **$R_d = 0.70$** (Mixed glottal tilt) • **$P_s = 10.5\text{ cmH}_2\text{O}$** • Vowel Warp: $+45\%$ (Tonic nucleus) • Pitch: Mocking rise-fall, deadpan coda
 - **Expressive Realization**: Tone explicitly contradicts surface meaning. Theatrical tonic elongation on *"completely fine"*, immediately collapsing into a dry, flat terminal coda.
-- **Direct Audio**: [▶ **Play MP3**](demo/audio/sarcasm.mp3) • [Download WAV](demo/audio/sarcasm.wav)
+- **Direct Media**: [▶ **Play MP3**](demo/audio/sarcasm.mp3) • [Download WAV](demo/audio/sarcasm.wav) • [🎬 HD Video MP4](https://github.com/basimrdj/voicebox-mcp/releases/download/v1.0.0/sarcasm.mp4)
 
 ---
 
 #### 5. Weary Exasperation (`exasperation` 😮‍💨)
 
-https://github.com/user-attachments/assets/d2706288-ec77-4223-b14a-bb447d2b837e
+[![Exasperation Visualizer](demo/video/exasperation.gif)](demo/audio/exasperation.mp3)
 
 - **Biophysical Controls**: **$R_d = 1.80$** (Breathy glottis) • **$P_s = 4.2\text{ cmH}_2\text{O}$** ($>50\%$ drop) • Vowel Warp: $+15\%$ (Lethargic) • Pitch: Downward decay into vocal fry
 - **Expressive Realization**: Running out of patience. An audible respiratory sigh dump at onset, followed by steep lung pressure collapse and trailing vocal fry.
-- **Direct Audio**: [▶ **Play MP3**](demo/audio/exasperation.mp3) • [Download WAV](demo/audio/exasperation.wav)
+- **Direct Media**: [▶ **Play MP3**](demo/audio/exasperation.mp3) • [Download WAV](demo/audio/exasperation.wav) • [🎬 HD Video MP4](https://github.com/basimrdj/voicebox-mcp/releases/download/v1.0.0/exasperation.mp4)
 
 ---
 
 #### 6. Irritated Annoyance (`annoyance` 💢)
 
-https://github.com/user-attachments/assets/a469f847-6b97-4b42-933b-77077a122115
+[![Annoyance Visualizer](demo/video/annoyance.gif)](demo/audio/annoyance.mp3)
 
 - **Biophysical Controls**: **$R_d = 0.55$** (Tense glottis) • **$P_s = 13.0\text{ cmH}_2\text{O}$** (Tension surge) • Vowel Warp: $-20\%$ (Staccato stops) • Pitch: Sharp falling nuclear accent ($H+L^*$)
 - **Expressive Realization**: Curt, sharp impatience. Hurried tempo (1.20x), high vocal fold tension, emphatic stop closures, and clipped terminal cadence.
-- **Direct Audio**: [▶ **Play MP3**](demo/audio/annoyance.mp3) • [Download WAV](demo/audio/annoyance.wav)
+- **Direct Media**: [▶ **Play MP3**](demo/audio/annoyance.mp3) • [Download WAV](demo/audio/annoyance.wav) • [🎬 HD Video MP4](https://github.com/basimrdj/voicebox-mcp/releases/download/v1.0.0/annoyance.mp4)
 
 ---
 
 #### 7. Shaky Anxiety (`anxiety` ⚡)
 
-https://github.com/user-attachments/assets/c1a3cb1a-a3a4-4a8d-a55e-1c7c0228160f
+[![Shaky Anxiety Visualizer](demo/video/anxiety.gif)](demo/audio/anxiety.mp3)
 
-- **Biophysical Controls**: **$R_d = 1.20$** (Constricted glottis) • **$P_s = 8.5\text{ cmH}_2\text{O}$** (Shallow breath) • Natural Modal Register (Mean $F_0 \approx 141\text{ Hz}$, Peak $< 204\text{ Hz}$) • Zero DSP filtering
-- **Expressive Realization**: Pure neural vocal synthesis with authentic emotional prosody: an uneasy, apprehensive throat tremor and delicate hesitant delivery under suppressed fear—completely free of synthetic bandpass or modulation filtering artifacts.
-- **Direct Audio**: [▶ **Play MP3**](demo/audio/anxiety.mp3) • [Download WAV](demo/audio/anxiety.wav)
+- **Biophysical Controls**: **$R_d = 1.20$** (Constricted glottis) • **$P_s = 8.5\text{ cmH}_2\text{O}$** (Shallow breath) • Natural Modal Register ($F_0 \approx 132.8\text{ Hz}$, Peak $< 179\text{ Hz}$) • Zero DSP filtering
+- **Expressive Realization**: Genuinely terrified and anxious about this decision. Shaky, breathless anxiety, voice trembling with dread, timid and nervous—authentically trying to convince the listener they are fine while their voice quivers with apprehension.
+- **Direct Media**: [▶ **Play MP3**](demo/audio/anxiety.mp3) • [Download WAV](demo/audio/anxiety.wav) • [🎬 HD Video MP4](https://github.com/basimrdj/voicebox-mcp/releases/download/v1.0.0/anxiety.mp4)
 
 ---
 
 #### 8. Quiet Dejection (`quiet_dejection` 🥀)
 
-https://github.com/user-attachments/assets/be7b1a42-b417-4eba-a74c-034022798f2b
+[![Quiet Dejection Visualizer](demo/video/quiet_dejection.gif)](demo/audio/quiet_dejection.mp3)
 
 - **Biophysical Controls**: **$R_d = 2.20$** (Lax, breathy folds) • **$P_s = 4.8\text{ cmH}_2\text{O}$** ($P_s \to P_{th}$) • Vowel Warp: $+20\%$ (Subdued drag) • Pitch: Depressed pitch floor, dying decay
 - **Expressive Realization**: Resigned defeat and quiet sorrow. Hypokinetic parasympathetic collapse, subdued amplitude, breathy spectral tilt, and fragile trailing silence.
-- **Direct Audio**: [▶ **Play MP3**](demo/audio/quiet_dejection.mp3) • [Download WAV](demo/audio/quiet_dejection.wav)
+- **Direct Media**: [▶ **Play MP3**](demo/audio/quiet_dejection.mp3) • [Download WAV](demo/audio/quiet_dejection.wav) • [🎬 HD Video MP4](https://github.com/basimrdj/voicebox-mcp/releases/download/v1.0.0/quiet_dejection.mp4)
 
 ---
 

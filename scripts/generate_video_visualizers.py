@@ -207,6 +207,16 @@ def render_subtext_video(cfg: dict) -> str:
     p.wait()
     size_kb = os.path.getsize(out_mp4) / 1024
     print(f"✓ Rendered {cfg['id']}.mp4 ({dur:.2f}s, {size_kb:.1f} KB)")
+
+    # Also render an optimized animated GIF for instant, native markdown display
+    out_gif = os.path.join(VIDEO_DIR, f"{cfg['id']}.gif")
+    gif_cmd = [
+        "ffmpeg", "-y", "-i", out_mp4,
+        "-vf", "fps=12,scale=400:-1:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse",
+        "-loop", "0",
+        out_gif
+    ]
+    subprocess.run(gif_cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     return out_mp4
 
 def render_compilation_video() -> str:

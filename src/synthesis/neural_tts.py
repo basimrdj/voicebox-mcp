@@ -23,7 +23,7 @@ SUBTEXT_INSTRUCTIONS = {
     "sarcasm": "Speak in a dry, mockingly theatrical voice with heavy sardonic emphasis and deadpan irony.",
     "exasperation": "Speak in an exhausted, breathy voice with a weary sigh and complete exasperation.",
     "annoyance": "Speak in an impatient, curt, sharp voice with clipped words and controlled annoyance.",
-    "anxiety": "Speak with anxious hesitation and a quiet tremor in the throat. Stressed, nervous, delicate, uneasy.",
+    "anxiety": "Terrified about this decision. Shaky, breathless anxiety, voice trembling with dread, timid and nervous.",
     "quiet_dejection": "Speak in a soft, sad, subdued, fragile voice with quiet resignation and sorrow.",
 }
 
