@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="assets/logo.png" alt="VoiceBox Logo" width="120" height="120" />
+
 # VoiceBox 🎙️
 
 **The Biophysical Vocal Tract & Subtextual Prosody Engine for AI Agents**
