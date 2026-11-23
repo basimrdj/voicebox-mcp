@@ -75,8 +75,8 @@ SUBTEXT_CONFIG = [
         "id": "anxiety",
         "name": "SHAKY ANXIETY",
         "emoji": "⚡",
-        "badge": "Rd=1.20 | Ps=8.5 cmH2O | 5.8Hz Laryngeal Tremor",
-        "tagline": "Audible 5.8 Hz neuromuscular tremor (FM+AM), shallow breath friction, restrained fear.",
+        "badge": "Rd=1.20 | Ps=8.5 cmH2O | Neural Prosodic Tremor",
+        "tagline": "Natural apprehensive hesitation, nervous throat tremor, and authentic vulnerability.",
         "color": (232, 121, 249),     # Fuchsia #e879f9
         "bg_badge": (40, 15, 45),
     },

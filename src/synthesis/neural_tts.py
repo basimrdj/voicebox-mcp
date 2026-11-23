@@ -23,7 +23,7 @@ SUBTEXT_INSTRUCTIONS = {
     "sarcasm": "Speak in a dry, mockingly theatrical voice with heavy sardonic emphasis and deadpan irony.",
     "exasperation": "Speak in an exhausted, breathy voice with a weary sigh and complete exasperation.",
     "annoyance": "Speak in an impatient, curt, sharp voice with clipped words and controlled annoyance.",
-    "anxiety": "Speak in a nervous, trembling voice, filled with anxiety. Subtle throat tremor, shaky quavering tone, frightened.",
+    "anxiety": "Speak with anxious hesitation and a quiet tremor in the throat. Stressed, nervous, delicate, uneasy.",
     "quiet_dejection": "Speak in a soft, sad, subdued, fragile voice with quiet resignation and sorrow.",
 }
 
@@ -103,24 +103,8 @@ def apply_emotion_postprocessing(
             float_audio = float_audio + (0.30 * subtext_intensity) * high_freq
 
         elif subtext == "anxiety":
-            # Physiological vocal tremor: phase-coupled frequency & amplitude modulation (Ramig & Shipp 1987)
-            tremor_rate = 5.8
-            omega = 2.0 * np.pi * tremor_rate
-            depth_semi = 1.10 * subtext_intensity
-            k = (depth_semi * np.log(2.0) / 12.0)
-            tau = t - (k / omega) * (np.cos(omega * t) - 1.0)
-            sample_tau = np.clip(tau * sr, 0, len(float_audio) - 2)
-            idx0 = sample_tau.astype(int)
-            frac = sample_tau - idx0
-            fm_audio = (1.0 - frac) * float_audio[idx0] + frac * float_audio[idx0 + 1]
-
-            am_env = 1.0 + (0.20 * subtext_intensity) * np.sin(omega * t - np.pi / 6.0)
-            float_audio = fm_audio * am_env
-
-            # Shallow breathiness and tense laryngeal constriction
-            sos = signal.butter(2, [1400, 3800], 'bandpass', fs=sr, output='sos')
-            breath = signal.sosfilt(sos, float_audio)
-            float_audio = float_audio + (0.08 * subtext_intensity) * breath
+            # Pure neural prosodic synthesis: zero artificial DSP filter artifacts
+            pass
 
         elif subtext == "exasperation":
             # Involuntary respiratory sigh dump (lung pressure Ps collapses over time)
