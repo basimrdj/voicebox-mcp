@@ -12,10 +12,11 @@
 [![Bun](https://img.shields.io/badge/Bun-%23000000.svg?style=flat-square&logo=bun&logoColor=white)](https://bun.sh/)
 [![MCP](https://img.shields.io/badge/MCP-1.32+-8A2BE2?style=flat-square)](https://modelcontextprotocol.io/)
 [![Acoustics](https://img.shields.io/badge/Acoustics-48_kHz_C--ABI-blue?style=flat-square)](https://github.com/basimrdj/voicebox-mcp)
-[![Tests](https://img.shields.io/badge/Tests-80%20passed%20(87k%20asserts)-success?style=flat-square)](https://github.com/basimrdj/voicebox-mcp)
+[![Tests](https://img.shields.io/badge/Tests-91%20passed%20(87.6k%20asserts)-success?style=flat-square)](https://github.com/basimrdj/voicebox-mcp)
+[![Demo](https://img.shields.io/badge/Demo-Interactive%20HTML5-blueviolet?style=flat-square)](demo/index.html)
 [![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
 
-[Quickstart](#quickstart) • [Upstream Attribution](#upstream-attribution--differentiation) • [The 7 Subtexts](#the-7-conversational-subtexts) • [Why VoiceBox?](#why-voicebox-vs-conventional-tts) • [Agent Skill](#-universal-agent-skill-integration-skillmd) • [MCP Tools](#mcp-tools-reference-16-standard--2-developmental)
+[Quickstart](#quickstart) • [The 7 Subtexts (Listen)](#the-7-conversational-subtexts) • [Interactive Demo Suite](#interactive-demonstration-suite) • [Upstream Attribution](#upstream-attribution--differentiation) • [Why VoiceBox?](#why-voicebox-vs-conventional-tts) • [Agent Skill](#-universal-agent-skill-integration-skillmd) • [MCP Tools](#mcp-tools-reference-16-standard--2-developmental)
 
 </div>
 
@@ -150,17 +151,51 @@ bun run cli.ts identity
 
 ## The 7 Conversational Subtexts
 
-Human emotion is rarely expressed by shouting. It leaks through subtle laryngeal tension while the words remain calm:
+Human emotion is rarely expressed by shouting or cartoonish mood filters. In genuine human interaction, communicative intent leaks through subtle laryngeal tension, respiratory dynamics, and micro-prosody while the surface words remain calm and polite.
 
-| Subtext State | Intended Subtext | Biophysical & Acoustic Markers | Example Delivery |
+### The Benchmark: 7 Words, 8 Realities
+
+To demonstrate true vocal decoupling, VoiceBox synthesizes the **exact same 7-word benchmark sentence** across all conditions:
+
+<div align="center">
+<blockquote>
+<strong>"I am completely fine with this decision."</strong>
+</blockquote>
+<em>Identical lexical text. Completely distinct biophysical laryngeal states, emotional intent, and acoustic realities.</em>
+</div>
+
+<br/>
+
+| Subtext & State | Listen (Inline & Direct) | Biophysical Laryngeal Controls | Expressive Acoustic Realization |
 | :--- | :--- | :--- | :--- |
-| `passive_hostility` | Polite words, cold tension. | Pressed glottis ($R_d = 0.45$), clipped vowels (-25%), clenched jaw, rigid pitch. | *"Whatever you think is best."* |
-| `curiosity` | Genuine intrigue, exploration. | High-rising boundary ($L-H\%$), elongated final vowel (+25%), expanded pitch range. | *"What does that mean for the system?"* |
-| `sarcasm` | Dry irony, deadpan mockery. | Stretched tonic vowel (+45%), wide rise-fall followed by low monotone coda. | *"What could possibly go wrong?"* |
-| `exasperation` | Weariness, repeating yourself. | Respiratory sigh dump ($P_s$ collapses $>50\%$), pitch trails into vocal fry. | *"Alright, let us look at the logs again."* |
-| `annoyance` | Petty friction, minor irritation. | Tense vocal folds, sharp falling pitch accents ($H+L^*$), clipped coda stops. | *"We already went over this step."* |
-| `anxiety` | Precarious danger, nervousness. | Synchronous 8.5 Hz neuromuscular tremor in $P_s$ and $f_0$, hurried syllables. | *"Are you sure it is going to work?"* |
-| `quiet_dejection` | Subdued defeat, sorrow. | Hypokinetic parasympathetic collapse ($P_s \to P_{th}$), breathy whisper fade-out. | *"There is no point in trying anymore."* |
+| **Neutral Baseline**<br/>`neutral` 😐 | <audio controls src="demo/audio/neutral.mp3" preload="none"></audio><br/>[▶ **Play MP3**](demo/audio/neutral.mp3) • [WAV](demo/audio/neutral.wav) | **$R_d = 1.00$** (Modal glottis)<br/>**$P_s = 8.0\text{ cmH}_2\text{O}$**<br/>Vowel Warp: $0\%$ (Standard)<br/>Pitch: Declarative fall ($H^*\ L\text{-}L\%$) | Objective, balanced reference statement. Steady lung pressure, natural conversational tempo (~170 wpm), zero emotional leakage. |
+| **Passive Hostility**<br/>`passive_hostility` 🧊 | <audio controls src="demo/audio/passive_hostility.mp3" preload="none"></audio><br/>[▶ **Play MP3**](demo/audio/passive_hostility.mp3) • [WAV](demo/audio/passive_hostility.wav) | **$R_d = 0.45$** (Pressed phonation)<br/>**$P_s = 11.5\text{ cmH}_2\text{O}$**<br/>Vowel Warp: $-25\%$ (Clipped)<br/>Pitch: Rigid flat monotone ($<1.5\text{ st}$) | Polite words concealing cold resentment. Rigid pitch contour, tight vocal fold adduction, and icy, deliberate spacing between clipped syllables. |
+| **Genuine Curiosity**<br/>`curiosity` 🔍 | <audio controls src="demo/audio/curiosity.mp3" preload="none"></audio><br/>[▶ **Play MP3**](demo/audio/curiosity.mp3) • [WAV](demo/audio/curiosity.wav) | **$R_d = 1.25$** (Flow phonation)<br/>**$P_s = 9.0\text{ cmH}_2\text{O}$**<br/>Vowel Warp: $+25\%$ (Final syllable)<br/>Pitch: High-rising terminal glide ($L\text{-}H\%$) | Open intrigue and active questioning. Relaxed, resonant vocal folds, bright timbre, and an inquisitive terminal upward inflection on *"decision?"*. |
+| **Deadpan Sarcasm**<br/>`sarcasm` 🎭 | <audio controls src="demo/audio/sarcasm.mp3" preload="none"></audio><br/>[▶ **Play MP3**](demo/audio/sarcasm.mp3) • [WAV](demo/audio/sarcasm.wav) | **$R_d = 0.70$** (Mixed glottal tilt)<br/>**$P_s = 10.5\text{ cmH}_2\text{O}$**<br/>Vowel Warp: $+45\%$ (Tonic nucleus)<br/>Pitch: Mocking rise-fall, deadpan coda | Tone explicitly contradicts surface meaning. Theatrical tonic elongation on *"completely fine"*, immediately collapsing into a dry, flat terminal coda. |
+| **Weary Exasperation**<br/>`exasperation` 😮‍💨 | <audio controls src="demo/audio/exasperation.mp3" preload="none"></audio><br/>[▶ **Play MP3**](demo/audio/exasperation.mp3) • [WAV](demo/audio/exasperation.wav) | **$R_d = 1.80$** (Breathy glottis)<br/>**$P_s = 4.2\text{ cmH}_2\text{O}$** ($>50\%$ drop)<br/>Vowel Warp: $+15\%$ (Lethargic)<br/>Pitch: Downward decay into vocal fry | Running out of patience. An audible respiratory sigh dump at onset, followed by steep lung pressure collapse and trailing vocal fry. |
+| **Irritated Annoyance**<br/>`annoyance` 💢 | <audio controls src="demo/audio/annoyance.mp3" preload="none"></audio><br/>[▶ **Play MP3**](demo/audio/annoyance.mp3) • [WAV](demo/audio/annoyance.wav) | **$R_d = 0.55$** (Tense glottis)<br/>**$P_s = 13.0\text{ cmH}_2\text{O}$** (Tension surge)<br/>Vowel Warp: $-20\%$ (Staccato stops)<br/>Pitch: Sharp falling nuclear accent ($H+L^*$) | Curt, sharp impatience. Hurried tempo (1.20x), high vocal fold tension, emphatic stop closures, and clipped terminal cadence. |
+| **Shaky Anxiety**<br/>`anxiety` ⚡ | <audio controls src="demo/audio/anxiety.mp3" preload="none"></audio><br/>[▶ **Play MP3**](demo/audio/anxiety.mp3) • [WAV](demo/audio/anxiety.wav) | **$R_d = 1.35$** (Unstable glottis)<br/>**$P_s = 10.0\text{ cmH}_2\text{O}$** (Labile)<br/>Vowel Warp: Hurried irregular pacing<br/>Pitch: Elevated baseline + 8.5 Hz tremor | Apprehension and precarious vulnerability. Elevated baseline $f_0$, nervous pacing, and involuntary 8.5 Hz amplitude and pitch micro-tremor. |
+| **Quiet Dejection**<br/>`quiet_dejection` 🥀 | <audio controls src="demo/audio/quiet_dejection.mp3" preload="none"></audio><br/>[▶ **Play MP3**](demo/audio/quiet_dejection.mp3) • [WAV](demo/audio/quiet_dejection.wav) | **$R_d = 2.20$** (Lax, breathy folds)<br/>**$P_s = 4.8\text{ cmH}_2\text{O}$** ($P_s \to P_{th}$)<br/>Vowel Warp: $+20\%$ (Subdued drag)<br/>Pitch: Depressed pitch floor, dying decay | Resigned defeat and quiet sorrow. Hypokinetic parasympathetic collapse, subdued amplitude, breathy spectral tilt, and fragile trailing silence. |
+
+---
+
+## Interactive Demonstration Suite
+
+VoiceBox includes a standalone, zero-dependency interactive demonstration suite packaged in [`demo/index.html`](demo/index.html) (with all 8 audio samples embedded directly as base64):
+
+```bash
+# Open directly in your default browser
+open demo/index.html
+
+# Or serve via local HTTP server
+python3 -m http.server 8000 --directory demo
+# Then visit http://localhost:8000
+```
+
+### Demonstration Features:
+- **Instant Interactive Playback**: Listen to all 7 subtexts and neutral baseline with zero latency (<10ms onset).
+- **Spectrogram & Biophysical Telemetry**: Inspect real-time $R_d$ glottal flow profiles, subglottal pressure contours, vowel warp ratios, and ToBI pitch accents.
+- **Double-Blind Listening Study**: Built-in blind perceptual evaluation test that randomizes clips, records human intent identification, and computes classification accuracy and confusion matrices with Wilson 95% confidence intervals.
 
 ---
 
@@ -231,25 +266,29 @@ VoiceBox exposes **16 core biophysical tools** by default through standard `stdi
 
 ## Automated Verification & Benchmarks
 
-VoiceBox features an automated test suite with 87,500+ assertions verifying acoustic physics, differential flow conservation, and MCP tool conformance:
+VoiceBox features an automated test suite with 87,600+ assertions verifying acoustic physics, differential flow conservation, trajectory continuity, closed-loop DIVA calibration, and MCP tool conformance:
 
 ```bash
 bun test
 ```
 
 ```
-tests/mcp_tools.test.ts          - 14 passed
-tests/subtext_prosody.test.ts    - 25 passed
-tests/emotional_prosody.test.ts  - 20 passed
-tests/streaming_bargein.test.ts  -  4 passed
-tests/sensorimotor_learning.test.ts - 7 passed
-tests/formant_acoustics.test.ts  -  4 passed
-tests/ffi_sanity.test.ts         -  6 passed
+tests/mcp_tools.test.ts              - 14 passed
+tests/subtext_prosody.test.ts        - 25 passed
+tests/synthesis_orchestrator.test.ts -  3 passed
+tests/emotional_prosody.test.ts      - 20 passed
+tests/diva_calibration.test.ts       -  2 passed
+tests/streaming_bargein.test.ts      -  4 passed
+tests/vocal_trajectory.test.ts       -  4 passed
+tests/sensorimotor_learning.test.ts  -  7 passed
+tests/evaluation_suite.test.ts       -  2 passed
+tests/formant_acoustics.test.ts      -  4 passed
+tests/ffi_sanity.test.ts             -  6 passed
 
- 80 pass
+ 91 pass
  0 fail
- 87586 expect() calls
-Ran 80 tests across 7 files. [22.88s]
+ 87646 expect() calls
+Ran 91 tests across 11 files. [27.05s]
 ```
 
 ### Benchmark Scope & Technical Notes

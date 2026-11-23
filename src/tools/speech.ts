@@ -10,6 +10,8 @@ import { callJson } from "../ffi/bindings.ts";
 import { loadProfile, applyProfileToEngine } from "../vault/profile.ts";
 import { BioNavbSynthesizer, DEFAULT_LARYNGEAL, type EmotionType, type SynthesizeOptions } from "../synthesis/neural_engine.ts";
 import { type SubtextState } from "../synthesis/subtext_engine.ts";
+import { SynthesisOrchestrator, type SynthesisEngineType } from "../synthesis/synthesis_orchestrator.ts";
+import { type CommunicativeIntent } from "../synthesis/prosody_planner.ts";
 import { spawnSync } from "child_process";
 import { existsSync, readFileSync, mkdirSync } from "fs";
 import { join } from "path";
@@ -212,6 +214,10 @@ export const speakTextSchema = z.object({
   emotion: emotionEnum.default("neutral").describe("Affective emotional state"),
   subtext: subtextStateEnum.optional().describe("Involuntary limbic-PAG subtext psychological state"),
   subtextIntensity: z.number().min(0.0).max(1.0).default(0.7).describe("Intensity of subtext psychological conditioning (0.0 - 1.0)"),
+  valence: z.number().min(-1.0).max(1.0).optional().describe("Continuous emotional valence (-1.0 negative to +1.0 positive)"),
+  arousal: z.number().min(0.0).max(1.0).optional().describe("Continuous physiological arousal (0.0 calm to 1.0 excited)"),
+  dominance: z.number().min(-1.0).max(1.0).optional().describe("Continuous social dominance (-1.0 submissive to +1.0 assertive)"),
+  engine: z.enum(["auto", "ddsp", "physical", "neural_hifiglot"]).optional().describe("Synthesis engine selection"),
 });
 
 export const speakIpaSchema = z.object({
@@ -222,6 +228,10 @@ export const speakIpaSchema = z.object({
   emotion: emotionEnum.default("neutral").describe("Affective emotional state"),
   subtext: subtextStateEnum.optional().describe("Involuntary limbic-PAG subtext psychological state"),
   subtextIntensity: z.number().min(0.0).max(1.0).default(0.7).describe("Intensity of subtext psychological conditioning (0.0 - 1.0)"),
+  valence: z.number().min(-1.0).max(1.0).optional().describe("Continuous emotional valence"),
+  arousal: z.number().min(0.0).max(1.0).optional().describe("Continuous physiological arousal"),
+  dominance: z.number().min(-1.0).max(1.0).optional().describe("Continuous social dominance"),
+  engine: z.enum(["auto", "ddsp", "physical", "neural_hifiglot"]).optional().describe("Synthesis engine selection"),
 });
 
 export const singNotesSchema = z.object({
@@ -241,11 +251,138 @@ export const singNotesSchema = z.object({
 
 export function registerSpeechTools(engine: ChimeraEngine) {
   const synth = new BioNavbSynthesizer(engine.sampleRate);
+  const orchestrator = new SynthesisOrchestrator(engine, engine.sampleRate);
 
   return {
     speak_text: async (args: z.infer<typeof speakTextSchema>) => {
       const emotion = args.emotion || "neutral";
       const emo = EMOTION_PROFILES[emotion];
+
+      // Physical Waveguide Execution: Render directly from CHIMERA C-ABI transmission lines
+      if (args.engine === "physical") {
+        const profile = loadProfile();
+        const baseF0 = args.f0 ?? profile.f0 ?? 120;
+        const chosenF0 = baseF0 * emo.f0Multiplier;
+        const effectiveRate = Math.max(0.4, Math.min(2.5, (args.rate ?? 1.0) * emo.rateMultiplier));
+        const effectiveIntonation = emo.intonationOverride || args.intonation || "statement";
+        const effectiveAccent = emo.accentMultiplier !== undefined ? (args.accent ?? 0.15) * emo.accentMultiplier : (args.accent ?? 0.15);
+
+        let phrases: any[];
+        if (args.language === "tr") {
+          phrases = callJson({ fn: "trPhrases", text: args.text });
+        } else if (args.language === "en") {
+          phrases = ChimeraEngine.g2pPhrases(args.text);
+        } else {
+          const syls = callJson<any[]>({ fn: "lyricsToSyllables", text: args.text, lang: "en" });
+          const segments: any[] = [];
+          for (const s of syls) segments.push(...(s.onset || []), s.nucleus, ...(s.coda || []));
+          phrases = [{ segments, intonation: emo.intonationOverride || args.intonation, pause: 0.3 }];
+        }
+
+        const plan = ChimeraEngine.planPhrases(phrases, {
+          body: engine.body,
+          t0: 0.0,
+          rate: effectiveRate,
+          f0: chosenF0,
+          intonation: effectiveIntonation,
+          accent: effectiveAccent,
+        });
+
+        applyProfileToEngine(engine, profile);
+        engine.setSource({
+          pressure: emo.lungPressure,
+          f0: chosenF0,
+          breathiness: emo.breathiness,
+          tension: emo.tension,
+          brightness: emo.brightness ?? 0.35,
+          roughness: emo.roughness ?? 0.08,
+          glide: emo.glide ?? 0.06,
+          voiced: true,
+        });
+        engine.scheduleGestures(plan.gestures, 0.0, true);
+        const totalFrames = Math.max(1024, Math.ceil((plan.end + 0.15) * engine.sampleRate));
+        const physicalSamples = engine.render(totalFrames);
+        const wavPath = saveToVault(physicalSamples, engine.sampleRate, `physical_${emotion}`);
+        const perception = analyzeAudio(physicalSamples, engine.sampleRate);
+        const base64Wav = readFileSync(wavPath).toString("base64");
+
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: JSON.stringify({
+                status: "success",
+                engine: "physical",
+                text: args.text,
+                language: args.language,
+                emotion,
+                subtext: args.subtext,
+                durationMs: (physicalSamples.length / engine.sampleRate) * 1000,
+                sampleCount: physicalSamples.length,
+                audioVaultPath: wavPath,
+                auditoryFeedback: perception,
+                audioBase64: base64Wav,
+              }),
+            },
+          ],
+        };
+      }
+
+      // Continuous VAD or explicit HiFi-Glot DDSP / Neural Formant Synthesis
+      if (
+        args.valence !== undefined ||
+        args.arousal !== undefined ||
+        args.dominance !== undefined ||
+        args.engine === "ddsp" ||
+        args.engine === "neural_hifiglot"
+      ) {
+        const mappedIntent: CommunicativeIntent =
+          args.subtext === "quiet_dejection"
+            ? "sadness"
+            : (args.subtext as CommunicativeIntent) ||
+              (emotion === "sadness"
+                ? "sadness"
+                : emotion === "hot_anger"
+                ? "annoyance"
+                : emotion === "cold_anger"
+                ? "passive_hostility"
+                : "neutral");
+
+        const orchResult = await orchestrator.synthesizeSpeech({
+          text: args.text,
+          intent: mappedIntent,
+          intensity: args.subtextIntensity ?? 0.7,
+          globalVAD: {
+            valence: args.valence,
+            arousal: args.arousal,
+            dominance: args.dominance,
+          },
+          baselineF0: args.f0,
+          speakingRate: args.rate ?? 1.0,
+          engine: args.engine || "ddsp",
+        });
+
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: JSON.stringify({
+                status: "success",
+                engine: orchResult.engineUsed,
+                text: args.text,
+                language: args.language,
+                emotion,
+                subtext: args.subtext,
+                durationMs: orchResult.durationMs,
+                sampleCount: orchResult.sampleCount,
+                audioVaultPath: orchResult.vaultPath,
+                auditoryFeedback: orchResult.perception,
+                audioBase64: orchResult.base64Wav,
+              }),
+            },
+          ],
+        };
+      }
 
       let phrases: any[];
       if (args.language === "tr") {
