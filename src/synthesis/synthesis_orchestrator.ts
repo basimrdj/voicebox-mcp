@@ -117,17 +117,25 @@ export class SynthesisOrchestrator {
 
   private synthesizeWithChimera(trajectory: VocalTrajectory, engine: ChimeraEngine): Float32Array {
     const totalFrames = Math.max(1024, Math.ceil((trajectory.durationMs / 1000.0) * engine.sampleRate));
+    
+    // Schedule planned phonetic articulatory gestures on the physical transmission waveguide
+    if (trajectory.gestures && trajectory.gestures.length > 0) {
+      engine.scheduleGestures(trajectory.gestures, 0.0, true);
+    }
+
     // Set initial source parameters from first frame
     const f0 = trajectory.frames[0];
-    engine.setSource({
-      f0: f0.glottal.f0,
-      pressure: f0.glottal.subglottalPressure,
-      breathiness: f0.glottal.breathiness,
-      tension: f0.glottal.glottalRd < 0.8 ? 0.8 : 0.4,
-      brightness: 0.35,
-      roughness: f0.glottal.roughness,
-      voiced: f0.glottal.voiced,
-    });
+    if (f0) {
+      engine.setSource({
+        f0: f0.glottal.f0,
+        pressure: f0.glottal.subglottalPressure,
+        breathiness: f0.glottal.breathiness,
+        tension: f0.glottal.glottalRd < 0.8 ? 0.8 : 0.4,
+        brightness: 0.35,
+        roughness: f0.glottal.roughness,
+        voiced: f0.glottal.voiced,
+      });
+    }
 
     return engine.render(totalFrames);
   }

@@ -7,6 +7,8 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { ChimeraEngine } from "./ffi/engine.ts";
 import { registerAllTools } from "./tools/registry.ts";
+export { VoiceBox, BACKEND_CAPABILITY_MATRIX, vocalPerformanceTimelineSchema } from "./performance/timeline.ts";
+export type { VocalPerformanceTimeline, VocalPerformanceOutput, BackendCapabilities } from "./performance/timeline.ts";
 
 export function createServer(): { server: McpServer; engine: ChimeraEngine } {
   const server = new McpServer({

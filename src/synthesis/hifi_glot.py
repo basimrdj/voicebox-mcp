@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
 """
-VoiceBox Phase 3 — HiFi-Glot Differentiable Resonant Formant Synthesizer
+VoiceBox Research & Prototyping — Differentiable Resonator Filter Bank (DSP Physical Baseline)
 Based on:
-- Gu et al. (2024): "High-Fidelity Neural Formant Synthesis with Differentiable Resonant Filters"
-- Titze (2008): "Nonlinear Source–Filter Coupling in Phonation"
 - Fant (1960): "Acoustic Theory of Speech Production"
+- Titze (2008): "Nonlinear Source–Filter Coupling in Phonation"
+- Gu et al. (2024): "High-Fidelity Neural Formant Synthesis with Differentiable Resonant Filters"
 
-Accepts a physical vocal control trajectory (F0, Ps, Rd, F1-F5, B1-B5, aspiration)
-and synthesizes the acoustic waveform via differentiable all-pole resonator banks.
+NOTE ON ARCHITECTURE:
+This module implements a differentiable second-order all-pole resonant biquad filter bank in
+PyTorch. While inspired by the physical resonator layers of HiFi-Glot, this script is a physical/DSP
+synthesis baseline operated under torch.no_grad(). It does not contain pretrained neural vocoder
+weights. A fully trained neural excitation vocoder is maintained as an active research track.
 """
 
 import sys

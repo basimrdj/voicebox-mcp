@@ -4,9 +4,9 @@
 
 # VoiceBox 🎙️
 
-**The Biophysical Vocal Tract & Subtextual Prosody Engine for AI Agents**
+**"Give your AI agents expressive voices that know how to deliver every word."**
 
-*Stop giving your autonomous agents a synthetic smile filter. Give them an actual physical throat, lungs, and involuntary emotional leakage.*
+*A biophysical vocal tract & subtextual prosody engine for autonomous AI agents.*
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Bun](https://img.shields.io/badge/Bun-%23000000.svg?style=flat-square&logo=bun&logoColor=white)](https://bun.sh/)

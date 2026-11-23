@@ -26,6 +26,7 @@ import {
 } from "./vocal_trajectory.ts";
 import { articulatorsToAcoustics } from "./articulatory_acoustic_mapping.ts";
 import { IPA_ACOUSTIC_PROFILES } from "./neural_engine.ts";
+import { PhonemePlanner, type ScheduledPhonemeFrame } from "./phoneme_planner.ts";
 
 export type CommunicativeIntent =
   | "neutral"
@@ -105,8 +106,29 @@ export class ProsodyPlanner {
       dominance: (options.globalVAD?.dominance ?? intentBase.dominance) * intensity,
     };
 
-    // 2. Tokenize words
-    const words = text.split(/\s+/).filter(w => w.length > 0);
+    // 2. Compute effective speaking rate scaling per intent
+    let effectiveRate = baseRate;
+    if (intent === "sadness") {
+      effectiveRate = baseRate * 0.76; // slower, lethargic duration
+    } else if (intent === "annoyance") {
+      effectiveRate = baseRate * 1.25; // accelerated, clipped duration
+    } else if (intent === "sarcasm") {
+      effectiveRate = baseRate * 0.88; // prolonged tonic nucleus
+    } else if (intent === "passive_hostility") {
+      effectiveRate = baseRate * 1.05; // rigid staccato
+    } else if (intent === "curiosity") {
+      effectiveRate = baseRate * 0.95;
+    }
+
+    // 3. Generate phoneme-level schedule with moving articulators and formants
+    const phonemePlan = PhonemePlanner.planPhoneticTrajectory(text, {
+      speakingRate: effectiveRate,
+      baselineF0,
+    });
+
+    // 4. Map words to configs
+    const words = phonemePlan.words.length > 0 ? phonemePlan.words : text.split(/\s+/).filter(w => w.length > 0);
+    const numWords = words.length;
     const wordConfigsMap = new Map<number, WordEmotionConfig>();
     if (options.wordConfigs) {
       for (const wc of options.wordConfigs) {
@@ -114,23 +136,38 @@ export class ProsodyPlanner {
       }
     }
 
-    // 3. Assemble phonetic and syllable schedule
+    // 5. Construct VocalTrajectory
     const trajectory = new VocalTrajectory(200, 48000);
-    let currentTimeMs = 20.0; // 20ms lead-in
+    trajectory.gestures = phonemePlan.gestures;
+    trajectory.segments = phonemePlan.segments;
+
+    let currentTimeOffsetMs = 0.0;
 
     // Insert onset nonverbal vocalization if requested (e.g. initial sigh or gasp)
     if (options.nonverbal && (options.nonverbalPosition === "onset" || !options.nonverbalPosition)) {
-      currentTimeMs = this.insertNonverbal(trajectory, currentTimeMs, options.nonverbal, targetVAD, baselineF0);
+      currentTimeOffsetMs = this.insertNonverbal(trajectory, 20.0, options.nonverbal, targetVAD, baselineF0);
     }
 
-    const numWords = words.length;
+    // 6. Project phonetic frames into emotionally modulated VocalControlFrames
+    const totalPlanFrames = phonemePlan.frames.length;
+    const planDurationMs = phonemePlan.durationMs;
 
-    for (let wIdx = 0; wIdx < numWords; wIdx++) {
-      const word = words[wIdx].replace(/[.,!?;:]/g, "");
-      const isFirstWord = wIdx === 0;
+    for (let i = 0; i < totalPlanFrames; i++) {
+      const pFrame = phonemePlan.frames[i];
+      const frameTimeMs = currentTimeOffsetMs + pFrame.timeMs;
+      const progress = totalPlanFrames > 1 ? i / (totalPlanFrames - 1) : 0.0;
+
+      // Determine active word index from frame
+      let wIdx = 0;
+      if (pFrame.word && words.length > 0) {
+        const found = words.findIndex(w => w.toLowerCase() === pFrame.word.toLowerCase());
+        if (found >= 0) wIdx = found;
+        else wIdx = Math.min(numWords - 1, Math.floor(progress * numWords));
+      } else {
+        wIdx = Math.min(numWords - 1, Math.floor(progress * numWords));
+      }
+
       const isLastWord = wIdx === numWords - 1;
-
-      // Word-specific VAD override or interpolation
       const wCfg = wordConfigsMap.get(wIdx);
       const currentWordVAD: ContinuousVAD = {
         valence: wCfg?.vad?.valence ?? targetVAD.valence,
@@ -140,179 +177,99 @@ export class ProsodyPlanner {
 
       const phys = vadToPhysiologicalModulations(currentWordVAD, baselineF0);
 
-      // Duration & Timing Planning
-      let wordDurationMultiplier = baseRate * phys.rateMultiplier;
-      if (wCfg?.durationMultiplier) {
-        wordDurationMultiplier *= wCfg.durationMultiplier;
-      }
-
-      // Intent-specific prosodic timing rules:
-      if (intent === "sarcasm") {
-        // Prolong tonic / focal syllable dramatically (+45%)
-        if (word.toLowerCase() === "fine" || word.toLowerCase() === "completely" || wIdx === 2) {
-          wordDurationMultiplier *= 1.45;
-        } else {
-          wordDurationMultiplier *= 0.95;
-        }
-      } else if (intent === "passive_hostility") {
-        // Cold, staccato, uniform word durations with clipped vocalic nuclei
-        wordDurationMultiplier *= 0.90;
-      } else if (intent === "annoyance") {
-        // Compressed, urgent delivery
-        wordDurationMultiplier *= 0.85;
-      } else if (intent === "sadness") {
-        // Slow lethargic pace
-        wordDurationMultiplier *= 1.30;
-      } else if (intent === "curiosity" && isLastWord) {
-        // Terminal vowel elongation for question rise
-        wordDurationMultiplier *= 1.25;
-      }
-
-      // Estimate word duration: roughly 65ms per character * multiplier, clamped 180ms - 600ms
-      const wordDurMs = Math.max(160.0, Math.min(750.0, word.length * 60.0 * wordDurationMultiplier));
-
-      // F0 Contour Planning for this word
-      let wordStartF0 = baselineF0 * phys.f0Multiplier;
-      let wordPeakF0 = wordStartF0;
-      let wordEndF0 = wordStartF0;
-
+      // Pitch Contour ($F_0$)
+      let frameF0 = baselineF0 * phys.f0Multiplier;
       if (intent === "curiosity") {
-        if (isLastWord) {
-          // Terminal high-rising question glide (L-H%): rises +45% at the end
-          wordPeakF0 = wordStartF0 * 1.15;
-          wordEndF0 = wordStartF0 * 1.50;
+        if (progress > 0.70) {
+          // Terminal high-rising interrogative glide (L-H%): rises +48% above baseline
+          const riseProg = (progress - 0.70) / 0.30;
+          frameF0 *= (1.0 + riseProg * 0.48);
         } else {
-          wordPeakF0 = wordStartF0 * 1.10;
-          wordEndF0 = wordStartF0 * 1.02;
+          frameF0 *= 1.05;
         }
       } else if (intent === "sarcasm") {
-        if (word.toLowerCase() === "fine" || wIdx === 2 || wIdx === 1) {
-          // Exaggerated melodramatic rise-fall arc
-          wordPeakF0 = wordStartF0 * 1.40;
-          wordEndF0 = wordStartF0 * 0.85;
+        // Melodramatic peak on tonic syllable ("completely" or "fine"), flat deadpan coda
+        if (progress >= 0.25 && progress <= 0.60) {
+          const tonicArc = Math.sin(((progress - 0.25) / 0.35) * Math.PI);
+          frameF0 *= (1.0 + tonicArc * 0.42);
         } else {
-          // Flat deadpan coda
-          wordStartF0 *= 0.90;
-          wordPeakF0 = wordStartF0;
-          wordEndF0 = wordStartF0 * 0.88;
+          frameF0 *= 0.88;
         }
       } else if (intent === "annoyance") {
-        // Sharp falling nuclear pitch accents (H+L*)
-        wordStartF0 *= 1.20;
-        wordPeakF0 = wordStartF0 * 1.25;
-        wordEndF0 = wordStartF0 * 0.80;
+        // Sharp falling nuclear pitch accent (H+L*)
+        const wordRel = (progress * numWords) % 1.0;
+        frameF0 *= (1.22 - wordRel * 0.38);
       } else if (intent === "passive_hostility") {
-        // Rigorous, chilling flat monotone (< 1.5 semitone variation)
-        wordStartF0 *= 0.92;
-        wordPeakF0 = wordStartF0;
-        wordEndF0 = wordStartF0;
+        // Rigid chilling flat monotone (< 1.5 semitones)
+        frameF0 *= 0.92;
       } else if (intent === "sadness") {
-        // Subdued pitch descending continuously
-        const declination = 1.0 - (wIdx / Math.max(1, numWords)) * 0.22;
-        wordStartF0 = baselineF0 * phys.f0Multiplier * declination;
-        wordPeakF0 = wordStartF0 * 1.02;
-        wordEndF0 = wordStartF0 * 0.92;
+        // Depressed descending declination
+        frameF0 *= (1.0 - progress * 0.22);
       }
 
-      // Generate frame trajectory for this word (sampled every 10ms)
-      const numFrames = Math.max(4, Math.floor(wordDurMs / 10.0));
-      const stepMs = wordDurMs / numFrames;
+      // If voiceless segment (e.g. stop closure or voiceless fricative)
+      const isVoiced = pFrame.voiced;
 
-      for (let f = 0; f < numFrames; f++) {
-        const frameTime = currentTimeMs + f * stepMs;
-        const progress = f / (numFrames - 1); // 0.0 to 1.0
-
-        // Continuous quadratic pitch arc
-        const pitchNorm = 4.0 * progress * (1.0 - progress); // 0 at ends, 1 in center
-        const currentF0 = (1.0 - progress) * wordStartF0 + progress * wordEndF0 + pitchNorm * (wordPeakF0 - Math.max(wordStartF0, wordEndF0));
-
-        // Subglottal pressure curve: peaks near word onset / tonic vowel
-        let pCur = phys.pressure;
-        if (intent === "relief" && isLastWord) {
-          pCur *= (1.0 - 0.45 * progress); // Sigh exhalation dump
-        }
-
-        // Articulators
-        const articulators = { ...DEFAULT_ARTICULATORS };
-        articulators.jaw += phys.jawOffset;
-        articulators.larynx += phys.larynxOffset;
-        articulators.epilarynx = phys.epilarynx;
-
-        // Formants
-        const kin = articulatorsToAcoustics(articulators);
-
-        trajectory.addFrame({
-          timeMs: frameTime,
-          word,
-          vad: { ...currentWordVAD },
-          articulators,
-          glottal: {
-            ...DEFAULT_GLOTTAL,
-            f0: currentF0,
-            subglottalPressure: pCur,
-            glottalRd: phys.glottalRd,
-            breathiness: phys.breathiness,
-            tremorFrequency: phys.tremorFreq,
-            tremorDepth: phys.tremorDepth,
-            voiced: true,
-          },
-          acoustics: {
-            formants: kin.formants,
-            bandwidths: kin.bandwidths,
-            nasalPoles: [250, 1000],
-            nasalZeros: [350, 1200],
-          },
-          prosody: {
-            speakingRate: wordDurationMultiplier,
-            stress: 0.5 + pitchNorm * 0.4,
-            loudness: 0.65 + pitchNorm * 0.25,
-            durationMs: wordDurMs,
-          },
-        });
+      // Subglottal Pressure ($P_s$)
+      let framePs = phys.pressure;
+      if (intent === "relief" && progress > 0.80) {
+        framePs *= (1.0 - 0.50 * ((progress - 0.80) / 0.20)); // Coda sigh dump
       }
 
-      currentTimeMs += wordDurMs;
+      // Shift articulators with emotional posture offsets
+      const articulators = { ...pFrame.articulators };
+      articulators.jaw = Math.max(-1.5, Math.min(1.5, articulators.jaw + phys.jawOffset));
+      articulators.larynx = Math.max(-1.5, Math.min(1.5, articulators.larynx + phys.larynxOffset));
+      articulators.epilarynx = Math.max(0.0, Math.min(1.0, articulators.epilarynx + (phys.epilarynx - 0.1)));
 
-      // Word boundary pause
-      let pauseMs = 35.0; // Standard inter-word closure
-      if (intent === "passive_hostility") {
-        pauseMs = 85.0; // Staccato cold deliberate pauses between words
-      } else if (intent === "sarcasm" && wIdx === 1) {
-        pauseMs = 120.0; // Theatrical pregnant pause before tonic emphasis
-      } else if (intent === "uncertainty" && wIdx === 1) {
-        pauseMs = 150.0; // Hesitation pause
-      }
+      // Moving Formants perturbed by tract length shift
+      const deltaLength = -articulators.larynx * 1.2 + articulators.lipProtrusion * 1.0;
+      const lengthScale = 17.5 / Math.max(12.0, Math.min(22.0, 17.5 + deltaLength));
+      const formants = pFrame.acoustics.formants.map(f => f * lengthScale);
 
-      // Add closure frame for pause
       trajectory.addFrame({
-        timeMs: currentTimeMs,
-        word: "[pause]",
+        timeMs: frameTimeMs,
+        phoneme: pFrame.phoneme,
+        word: pFrame.word,
         vad: { ...currentWordVAD },
-        articulators: { ...DEFAULT_ARTICULATORS },
+        articulators,
         glottal: {
           ...DEFAULT_GLOTTAL,
-          f0: wordEndF0,
-          subglottalPressure: Math.max(3.0, phys.pressure * 0.5),
+          f0: frameF0,
+          subglottalPressure: framePs,
           glottalRd: phys.glottalRd,
-          voiced: false, // unvoiced inter-word closure
+          breathiness: Math.max(phys.breathiness, pFrame.aspiration),
+          tremorFrequency: phys.tremorFreq,
+          tremorDepth: phys.tremorDepth,
+          voiced: isVoiced,
         },
-        acoustics: { ...DEFAULT_ACOUSTICS },
-        prosody: { ...DEFAULT_PROSODIC, loudness: 0.0, durationMs: pauseMs },
+        acoustics: {
+          formants: formants as any,
+          bandwidths: pFrame.acoustics.bandwidths as any,
+          nasalPoles: pFrame.acoustics.nasalPoles,
+          nasalZeros: pFrame.acoustics.nasalZeros,
+        },
+        prosody: {
+          speakingRate: effectiveRate,
+          stress: pFrame.stress,
+          loudness: 0.65 + pFrame.stress * 0.25,
+          durationMs: 10.0,
+        },
       });
-
-      currentTimeMs += pauseMs;
     }
 
-    // Insert coda nonverbal vocalization if requested (e.g. trailing sigh of relief or exasperation)
+    // Insert coda nonverbal vocalization if requested
     if (options.nonverbal && options.nonverbalPosition === "coda") {
-      currentTimeMs = this.insertNonverbal(trajectory, currentTimeMs, options.nonverbal, targetVAD, baselineF0);
+      const codaStartMs = trajectory.durationMs + 20.0;
+      this.insertNonverbal(trajectory, codaStartMs, options.nonverbal, targetVAD, baselineF0);
     }
 
     // Apply any explicit intra-utterance transitions if configured
     if (options.transitions) {
+      const totalDur = trajectory.durationMs;
       for (const tr of options.transitions) {
-        const startMs = (tr.fromWordIndex / numWords) * currentTimeMs;
-        const endMs = (tr.toWordIndex / numWords) * currentTimeMs;
+        const startMs = (tr.fromWordIndex / numWords) * totalDur;
+        const endMs = (tr.toWordIndex / numWords) * totalDur;
         trajectory.applyIntraUtteranceTransition(startMs, endMs, tr.targetVAD, baselineF0);
       }
     }

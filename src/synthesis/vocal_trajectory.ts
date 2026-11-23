@@ -226,6 +226,8 @@ export class VocalTrajectory {
   readonly frameRateHz: number;
   readonly sampleRate: number;
   readonly frames: VocalControlFrame[];
+  public gestures?: any[];
+  public segments?: any[];
 
   constructor(
     frameRateHz: number = 200, // 5ms per control frame

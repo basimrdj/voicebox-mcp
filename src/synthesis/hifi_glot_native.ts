@@ -1,15 +1,13 @@
 /**
- * VoiceBox Phase 3 — Native HiFi-Glot Formant Synthesizer
+ * VoiceBox Phase 3 — Native Formant Resonator Synthesizer (DSP All-Pole Resonator Bank)
  * 
- * Implements high-fidelity neural-acoustic formant synthesis
- * (Gu et al., HiFi-Glot 2024; Fant 1960; Titze 2008).
+ * Implements a high-precision biophysical resonator filter bank in native TypeScript/Bun
+ * based on Fant (1960) and Titze (2008).
  * 
- * Directly conditions the acoustic output on:
- * - Time-varying glottal pulse excitation E(t) via Gunnar Fant LF model
- * - Supraglottal vocal tract inertance coupling (Lt * du_g/dt)
- * - Time-varying all-pole resonant biquad filters (F1-F5, B1-B5)
- * - Turbulent aspiration noise and micro-tremor
- * - Lip radiation differential filter (6 dB/octave boost)
+ * NOTE ON ARCHITECTURE:
+ * This engine executes direct DSP biquad resonators with time-varying formant control (F1-F5),
+ * glottal pulse excitation via the Gunnar Fant LF differential model, and supraglottal inertance coupling.
+ * It is a biophysical physical/DSP synthesis pathway, not a trained neural model.
  * 
  * Runs in real-time in native TypeScript/Bun with <15ms latency.
  */

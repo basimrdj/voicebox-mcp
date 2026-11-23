@@ -17,6 +17,7 @@ export function estimatePitchWithCorr(samples: Float32Array, sampleRate: number 
 
   let globalBestCorr = 0;
   let globalBestLag = 0;
+  let bestS = 0;
 
   for (let s = 0; s <= samples.length - frameLen - maxLag; s += hop) {
     let corrAtPeak = 0;
@@ -48,6 +49,33 @@ export function estimatePitchWithCorr(samples: Float32Array, sampleRate: number 
     if (corrAtPeak > globalBestCorr) {
       globalBestCorr = corrAtPeak;
       globalBestLag = lagAtPeak;
+      bestS = s;
+    }
+  }
+
+  // Octave-halving guard (Boersma 1993 / YIN): prefer smallest lag (fundamental period) if ratio >= 0.85
+  if (globalBestLag > 0 && globalBestCorr > 0.40) {
+    for (const divisor of [2, 3]) {
+      const subLag = Math.round(globalBestLag / divisor);
+      if (subLag >= minLag) {
+        let cSub = 0, n1Sub = 0, n2Sub = 0;
+        for (let i = 0; i < frameLen; i += 2) {
+          const v1 = samples[bestS + i];
+          const v2 = samples[bestS + i + subLag];
+          cSub += v1 * v2;
+          n1Sub += v1 * v1;
+          n2Sub += v2 * v2;
+        }
+        const normSub = Math.sqrt(n1Sub * n2Sub);
+        if (normSub > 0) {
+          const rSub = cSub / normSub;
+          if (rSub >= 0.85 * globalBestCorr) {
+            globalBestLag = subLag;
+            globalBestCorr = rSub;
+            break;
+          }
+        }
+      }
     }
   }
 
