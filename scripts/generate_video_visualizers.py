@@ -75,8 +75,8 @@ SUBTEXT_CONFIG = [
         "id": "anxiety",
         "name": "SHAKY ANXIETY",
         "emoji": "⚡",
-        "badge": "Rd=1.35 Unstable | Ps=10.0 cmH2O | 8.5 Hz Tremor",
-        "tagline": "Elevated pitch floor, nervous pacing, and involuntary tremor.",
+        "badge": "Rd=1.15 Tense | Ps=8.5 cmH2O | Nervous Waver",
+        "tagline": "Quiet apprehension, nervous vulnerability, and restrained vocal tension.",
         "color": (232, 121, 249),     # Fuchsia #e879f9
         "bg_badge": (40, 15, 45),
     },

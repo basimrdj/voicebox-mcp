@@ -23,7 +23,7 @@ SUBTEXT_INSTRUCTIONS = {
     "sarcasm": "Speak in a dry, mockingly theatrical voice with heavy sardonic emphasis and deadpan irony.",
     "exasperation": "Speak in an exhausted, breathy voice with a weary sigh and complete exasperation.",
     "annoyance": "Speak in an impatient, curt, sharp voice with clipped words and controlled annoyance.",
-    "anxiety": "Speak in a tense, nervous, slightly trembling voice with rapid pacing and audible anxiety.",
+    "anxiety": "Speak in a quiet, nervous, slightly hesitant voice with subtle trembling in the throat, shallow breathiness, and tense restraint.",
     "quiet_dejection": "Speak in a soft, sad, subdued, fragile voice with quiet resignation and sorrow.",
 }
 
@@ -56,10 +56,10 @@ def format_subtext_prompt(text: str, subtext: str) -> str:
         # Emphatic, curt, sharp exclamation
         return clean_text + "!"
     elif subtext == "anxiety":
-        # Hesitant initial stutter / breathlessness
+        # Hesitant, cautious phrasing without repeating words
         words = clean_text.split()
-        if len(words) >= 2:
-            return f"{words[0]}... {clean_text}."
+        if len(words) >= 4:
+            return f"{words[0]} {words[1]}, {words[2]} {words[3]}, {' '.join(words[4:])}."
         return clean_text + "."
     elif subtext == "quiet_dejection":
         # Slow, heavy, subdued trailing resignation
@@ -106,10 +106,10 @@ def apply_emotion_postprocessing(
             float_audio = float_audio + (0.30 * subtext_intensity) * high_freq
 
         elif subtext == "anxiety":
-            # 8.0 Hz neuromuscular physiological tremor in amplitude
-            tremor_depth = 0.12 * subtext_intensity
-            tremor = 1.0 + tremor_depth * np.sin(2.0 * np.pi * 8.0 * t)
-            float_audio = float_audio * tremor
+            # Shallow breathiness and tense laryngeal constriction without artificial ring modulation
+            sos = signal.butter(2, [1200, 3500], 'bandpass', fs=sr, output='sos')
+            mid_freq = signal.sosfilt(sos, float_audio)
+            float_audio = float_audio + (0.12 * subtext_intensity) * mid_freq
 
         elif subtext == "exasperation":
             # Involuntary respiratory sigh dump (lung pressure Ps collapses over time)
@@ -213,7 +213,7 @@ def generate_speech(
     elif subtext == "annoyance":
         speed *= 1.20
     elif subtext == "anxiety":
-        speed *= 1.10
+        speed *= 0.95
     elif subtext == "exasperation":
         speed *= 0.90
 

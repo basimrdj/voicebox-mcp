@@ -97,12 +97,12 @@ subtext_info = {
         'name': 'Shaky Anxiety',
         'emoji': '⚡',
         'badge': 'Subtext 6',
-        'tagline': 'Apprehension, nervous vulnerability, precarious danger.',
-        'rd': '1.40 (Unstable)',
-        'ps': '7.5 cmH2O (Tremor)',
-        'vowel_warp': '-15% (Hurried)',
-        'pitch': 'Elevated pitch + 8.0 Hz amplitude tremor',
-        'cues': 'Elevated fundamental frequency (+3 semitones) and an involuntary 8.0 Hz neuromuscular amplitude tremor simulating laryngeal instability and breathless hesitation.',
+        'tagline': 'Quiet apprehension, nervous vulnerability, and restrained vocal tension.',
+        'rd': '1.15 (Tense / Constricted)',
+        'ps': '8.5 cmH2O (Shallow breath)',
+        'vowel_warp': 'Hesitant / micro-pauses',
+        'pitch': 'Restrained modal pitch with nervous waver (~121 Hz)',
+        'cues': 'Subtle vocal cord tension, nervous hesitation, and shallow thoracic breath support without screeching or pitch explosion: "I am, completely fine, with this decision."',
         'color': 'emerald'
     },
     'quiet_dejection': {
