@@ -68,6 +68,45 @@ Human emotion is rarely expressed by screaming every word. It leaks through subt
 
 ---
 
+## 🤖 Universal Agent Skill Integration (`SKILL.md`)
+
+VoiceBox is packaged with a universal Agent Skill adhering to the open [`agentskills.io`](https://agentskills.io) standard. This allows any AI coding agent or autonomous harness to automatically understand when, why, and how to use the voice box to its maximum potential.
+
+The skill is pre-packaged in multiple standard directories for zero-config discovery:
+- `skills/voicebox/SKILL.md` (Standard skills root)
+- `.agents/skills/voicebox/SKILL.md` (Universal agent discovery)
+- `.claude/skills/voicebox/SKILL.md` (Claude Code discovery)
+
+### Universal Harness Compatibility
+
+| Agent Harness | Auto-Discovery Path | Setup Instructions |
+| :--- | :--- | :--- |
+| **Antigravity / Gemini CLI** | `~/.gemini/config/skills/voicebox/` or `.agents/skills/voicebox/` | Pre-installed! Automatically discovers `SKILL.md` in workspace or global config. |
+| **Claude Code** | `.claude/skills/voicebox/` or `skills/voicebox/` | Pre-configured. Automatically loaded when the user asks for vocalization or emotion. |
+| **Cursor & Windsurf** | `.agents/skills/voicebox/` or `.cursorrules` / `.windsurfrules` | Drop `skills/voicebox/SKILL.md` into your rules or include it in agent context. |
+| **Claude Desktop** | System Prompt or MCP Tool definition | Reference `skills/voicebox/SKILL.md` as your agent's voice operational guide. |
+| **Custom Agent Frameworks** (LangChain, AutoGen, CrewAI, Smolagents) | `skills/voicebox/SKILL.md` | Ingest `SKILL.md` into the agent's system prompt or tool memory. |
+
+### Installing Globally on Your Machine
+
+To make VoiceBox available to your agents globally across all projects on your system:
+
+```bash
+# Antigravity / Gemini CLI
+mkdir -p ~/.gemini/config/skills/voicebox
+cp -r skills/voicebox/* ~/.gemini/config/skills/voicebox/
+
+# Claude Code
+mkdir -p ~/.claude/skills/voicebox
+cp -r skills/voicebox/* ~/.claude/skills/voicebox/
+
+# Open Agent Skills directory
+mkdir -p ~/.agents/skills/voicebox
+cp -r skills/voicebox/* ~/.agents/skills/voicebox/
+```
+
+---
+
 ## MCP Integration (Claude Desktop, Cursor, Antigravity)
 
 Add VoiceBox to your MCP configuration file:
