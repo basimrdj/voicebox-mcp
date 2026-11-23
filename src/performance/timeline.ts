@@ -151,9 +151,9 @@ export const vocalPerformanceTimelineSchema = z.object({
     description: z.string().optional(),
   }),
   linguistic: linguisticLayerSchema,
-  identity: identityLayerSchema.default({}),
-  performance: performanceLayerSchema.default({}),
-  rendering: renderingLayerSchema.default({}),
+  identity: identityLayerSchema.default(() => identityLayerSchema.parse({})),
+  performance: performanceLayerSchema.default(() => performanceLayerSchema.parse({})),
+  rendering: renderingLayerSchema.default(() => renderingLayerSchema.parse({})),
 });
 
 export type LinguisticLayer = z.infer<typeof linguisticLayerSchema>;
@@ -201,7 +201,6 @@ export class VoiceBox {
     });
 
     const targetBackend = timeline.rendering.backend;
-    const caps = BACKEND_CAPABILITY_MATRIX[targetBackend];
 
     // 2. Prepare orchestrator
     if (targetBackend === "physical" && !VoiceBox.chimeraEngine) {
@@ -217,7 +216,15 @@ export class VoiceBox {
       intent: timeline.performance.intent as any,
       intensity: timeline.performance.intensity,
       baselineF0: timeline.identity.baselineF0,
+      pitchRangeSemitones: timeline.identity.pitchRangeSemitones,
+      pitchContour: timeline.performance.pitchContour,
       speakingRate: timeline.performance.speakingRate,
+      glottalRd: timeline.performance.glottalRd,
+      subglottalPressureCmH2O: timeline.performance.subglottalPressureCmH2O,
+      breathiness: timeline.performance.breathiness,
+      vocalTractLengthCm: timeline.identity.vocalTractLengthCm,
+      timbreProfile: timeline.identity.timbreProfile,
+      speakerEmbedding: timeline.identity.speakerEmbedding,
       nonverbal: timeline.performance.nonverbal as any,
       nonverbalPosition: timeline.performance.nonverbalPosition,
       engine: targetBackend,
@@ -227,8 +234,12 @@ export class VoiceBox {
         wordIndex: wm.wordIndex,
         durationMultiplier: wm.durationMultiplier,
         stressMultiplier: wm.stressMultiplier,
+        f0Multiplier: wm.pitchOffsetHz ? (1.0 + wm.pitchOffsetHz / timeline.identity.baselineF0) : undefined,
       })),
     });
+
+    const actualBackend = (audioResult.engineUsed as SynthesisEngineType) || "ddsp";
+    const caps = BACKEND_CAPABILITY_MATRIX[actualBackend] || BACKEND_CAPABILITY_MATRIX.ddsp;
 
     const supportedControlsSummary: Record<string, ControlSupportLevel> = {
       pitchContour: caps.supportsExactPitchContour,

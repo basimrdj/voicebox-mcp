@@ -12,7 +12,7 @@
 [![Bun](https://img.shields.io/badge/Bun-%23000000.svg?style=flat-square&logo=bun&logoColor=white)](https://bun.sh/)
 [![MCP](https://img.shields.io/badge/MCP-1.32+-8A2BE2?style=flat-square)](https://modelcontextprotocol.io/)
 [![Acoustics](https://img.shields.io/badge/Acoustics-48_kHz_C--ABI-blue?style=flat-square)](https://github.com/basimrdj/voicebox-mcp)
-[![Tests](https://img.shields.io/badge/Tests-91%20passed%20(87.6k%20asserts)-success?style=flat-square)](https://github.com/basimrdj/voicebox-mcp)
+[![Tests](https://img.shields.io/badge/Tests-99%20passed%20(87.7k%20asserts)-success?style=flat-square)](https://github.com/basimrdj/voicebox-mcp)
 [![Demo](https://img.shields.io/badge/Demo-Interactive%20HTML5-blueviolet?style=flat-square)](demo/index.html)
 [![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
 
@@ -367,22 +367,24 @@ bun test
 ```
 
 ```
-tests/mcp_tools.test.ts              - 14 passed
-tests/subtext_prosody.test.ts        - 25 passed
-tests/synthesis_orchestrator.test.ts -  3 passed
-tests/emotional_prosody.test.ts      - 20 passed
-tests/diva_calibration.test.ts       -  2 passed
-tests/streaming_bargein.test.ts      -  4 passed
-tests/vocal_trajectory.test.ts       -  4 passed
-tests/sensorimotor_learning.test.ts  -  7 passed
-tests/evaluation_suite.test.ts       -  2 passed
-tests/formant_acoustics.test.ts      -  4 passed
-tests/ffi_sanity.test.ts             -  6 passed
+tests/mcp_tools.test.ts                - 14 passed
+tests/subtext_prosody.test.ts          - 25 passed
+tests/synthesis_orchestrator.test.ts   -  3 passed
+tests/emotional_prosody.test.ts        - 20 passed
+tests/diva_calibration.test.ts         -  2 passed
+tests/streaming_bargein.test.ts        -  4 passed
+tests/vocal_trajectory.test.ts         -  4 passed
+tests/sensorimotor_learning.test.ts    -  7 passed
+tests/evaluation_suite.test.ts         -  2 passed
+tests/formant_acoustics.test.ts        -  4 passed
+tests/ffi_sanity.test.ts               -  6 passed
+tests/phoneme_articulation.test.ts     -  4 passed
+tests/vocal_performance_timeline.test.ts - 4 passed
 
- 91 pass
+ 99 pass
  0 fail
- 87646 expect() calls
-Ran 91 tests across 11 files. [27.05s]
+ 87710 expect() calls
+Ran 99 tests across 13 files.
 ```
 
 ### Benchmark Scope & Technical Notes

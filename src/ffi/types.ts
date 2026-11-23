@@ -134,6 +134,7 @@ export interface PlannedSegment {
   t0: number;
   t1: number;
   stress: number;
+  kind?: string;
 }
 
 export interface PlanOptions {

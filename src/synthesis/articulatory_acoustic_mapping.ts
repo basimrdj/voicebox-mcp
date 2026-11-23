@@ -17,6 +17,8 @@ export interface VocalTractAcoustics {
   epilarynxBoostGain: number;
 }
 
+export type ArticulatorKinematics = VocalTractAcoustics;
+
 /**
  * Baseline neutral adult male vocal tract (uniform 17.5 cm tube, Fant 1960).
  * Fn = (2n - 1) * c / (4 * L) with c = 35000 cm/s, L = 17.5 cm:

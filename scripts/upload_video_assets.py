@@ -10,8 +10,10 @@ import json
 import subprocess
 import requests
 
-VIDEO_DIR = "/Users/basimhussain/Projects/voicebox-mcp/demo/video"
-OUTPUT_JSON = "/Users/basimhussain/Projects/voicebox-mcp/demo/video/asset_urls.json"
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
+VIDEO_DIR = os.path.join(PROJECT_ROOT, "demo", "video")
+OUTPUT_JSON = os.path.join(VIDEO_DIR, "asset_urls.json")
 
 # Get GitHub token and repo ID using gh CLI
 token = subprocess.check_output(["gh", "auth", "token"]).decode("utf-8").strip()

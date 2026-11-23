@@ -3,6 +3,8 @@
  * Implements LPC Formant Analysis, YIN Pitch Tracking, HNR, and Spectral Centroid.
  */
 import type { AuditoryPerception } from "../ffi/types.ts";
+export type { AuditoryPerception };
+export type AudioPerception = AuditoryPerception;
 
 /**
  * Autocorrelation / YIN-style fundamental frequency (f0) estimation with correlation score.

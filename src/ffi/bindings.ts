@@ -6,7 +6,7 @@ import { dlopen, FFIType, toArrayBuffer } from "bun:ffi";
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 
-function findLibraryPath(): string {
+function findLibraryPath(): string | null {
   if (process.env.CHIMERA_LIB_PATH && existsSync(process.env.CHIMERA_LIB_PATH)) {
     return process.env.CHIMERA_LIB_PATH;
   }
@@ -33,16 +33,16 @@ function findLibraryPath(): string {
     }
   }
 
-  throw new Error(
-    `Cannot find CHIMERA native dynamic library (${libName}). Checked:\n` +
-      candidates.join("\n") +
-      "\nSet CHIMERA_LIB_PATH to specify exact location."
-  );
+  return null;
 }
 
 const libPath = findLibraryPath();
 
-export const ffi = dlopen(libPath, {
+let loadedFfi: any = null;
+
+if (libPath) {
+  try {
+    loadedFfi = dlopen(libPath, {
   // Linear memory & general API
   chimera_alloc: { args: ["usize" as any], returns: FFIType.ptr },
   chimera_free: { args: [FFIType.ptr, "usize" as any], returns: FFIType.void },
@@ -94,14 +94,29 @@ export const ffi = dlopen(libPath, {
   engine_creature_telemetry: { args: [FFIType.ptr], returns: FFIType.ptr },
   engine_play_call: { args: [FFIType.ptr, "usize" as any, FFIType.f64, FFIType.f64], returns: FFIType.void },
   engine_stop_call: { args: [FFIType.ptr], returns: FFIType.void },
-});
+    });
+  } catch (err) {
+    console.warn(`[VoiceBox FFI] Warning: Failed to dlopen ${libPath}:`, err);
+    loadedFfi = null;
+  }
+}
 
-export const symbols = ffi.symbols;
+export const ffi = loadedFfi;
+export const symbols: any = loadedFfi ? loadedFfi.symbols : null;
+
+export function isNativeChimeraAvailable(): boolean {
+  return loadedFfi !== null && loadedFfi.symbols !== null;
+}
 
 /**
  * Execute a JSON call on the CHIMERA main-thread engine.
  */
 export function callJson<T = any>(req: Record<string, any>): T {
+  if (!symbols) {
+    throw new Error(
+      `Native CHIMERA dynamic library is unavailable in this environment. Attempted call '${req.fn}' failed. Set CHIMERA_LIB_PATH to libchimera_wasm or use the neural DDSP synthesizer.`
+    );
+  }
   const enc = new TextEncoder();
   const bytes = enc.encode(JSON.stringify(req));
   const p = symbols.chimera_alloc(bytes.length);

@@ -12,8 +12,10 @@ import numpy as np
 import soundfile as sf
 from PIL import Image, ImageDraw, ImageFont
 
-AUDIO_DIR = "/Users/basimhussain/Projects/voicebox-mcp/demo/audio"
-VIDEO_DIR = "/Users/basimhussain/Projects/voicebox-mcp/demo/video"
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
+AUDIO_DIR = os.path.join(PROJECT_ROOT, "demo", "audio")
+VIDEO_DIR = os.path.join(PROJECT_ROOT, "demo", "video")
 os.makedirs(VIDEO_DIR, exist_ok=True)
 
 SUBTEXT_CONFIG = [

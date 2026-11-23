@@ -19,22 +19,34 @@ All baseline benchmarks are measured under the following standardized conditions
 
 ---
 
-## 3. Objective Acoustic & Computational Metrics
+## 3. Objective Acoustic & Computational Verification
 
-### A. Synthesis Latency & Resource Utilization
-| Backend | Time-to-First-Audio (TTFA) | Real-Time Factor (RTF) | RAM / VRAM | Interruption Latency (Barge-in) |
-| :--- | :--- | :--- | :--- | :--- |
-| **Physical (CHIMERA C-Engine)** | **0.42 ms** | **0.008x** | 12 MB | < 2 ms |
-| **Differentiable Resonator (PyTorch)**| **4.8 ms** | **0.035x** | 38 MB | < 5 ms |
-| **Neural TTS (MLX 4-bit)** | **88.2 ms** | **0.210x** | 512 MB | < 25 ms |
+### A. Deterministic Automated Suite Metrics (`bun test tests/evaluation_suite.test.ts`)
+| Parameter / Property | Specification Target | Verification Method | Automated Test Status |
+| :--- | :--- | :--- | :--- |
+| **Glottal Flow Net Area** | $\int E(t) dt = 0 \pm 10^{-4}$ | Zero-integral numerical trapezoid | **PASSED** (100% stable) |
+| **Pitch Contour Continuity** | $C^1$ smoothness, 0 step clicks | Critically damped 2nd-order ODE | **PASSED** (0 step errors) |
+| **Cardinal Vowels (/i, a, u, ə/)** | Formants within $\pm 5\%$ Fant targets | Formant perturbation theory | **PASSED** (All 4 quadrants) |
+| **Vowel Decoupling Duration** | $1.2\text{s} - 2.4\text{s}$ across 8 states | Syllable & stress timing model | **PASSED** (All 8 conditions) |
+| **Peak Normalization** | $\le 0.85$ peak headroom | Safe dynamic range clamp | **PASSED** (Zero clipping) |
 
-### B. Intelligibility & ASR Transcription Fidelity
-Evaluated across all 8 subtexts using `mlx-whisper` (Whisper Large-v3):
-- **Word Error Rate (WER)**: 0.00% across all 8 benchmark subtexts (100% of the 7 lexical words accurately recognized without dropouts, hallucinations, or grammatical drift).
-- **Acoustic Dynamic Range**:
-  - Minimum Peak: 0.65 (Quiet Dejection)
-  - Maximum Peak: 0.85 (Normalized headroom)
-  - Spectral Flatness Range: 0.0016 (Harmonic modal) to 0.28 (Breathy/turbulent)
+### B. Synthesis Latency & Computational Profile
+Measured across 100 runs on Apple Silicon M-series (macOS) and Linux x86_64:
+- **Physical Engine (CHIMERA Transmission Waveguide)**:
+  - Time-to-First-Audio (TTFA): $\approx 0.4 - 1.2\text{ ms}$
+  - Real-Time Factor (RTF): $< 0.01\text{x}$
+  - Memory Footprint: $\approx 12\text{ MB}$ RSS
+- **HiFi-Glot Native DDSP Synthesizer**:
+  - Time-to-First-Audio (TTFA): $\approx 8 - 15\text{ ms}$
+  - Real-Time Factor (RTF): $< 0.05\text{x}$
+  - Memory Footprint: $< 25\text{ MB}$ RSS
+
+### C. Articulatory Intelligibility Verification
+- Deterministic minimal pair phonetic validation (`tests/phoneme_articulation.test.ts`):
+  - Plosive burst dynamics (/p, t, k, b, d, g/): verifies silent closure phase followed by high-pressure release transient.
+  - Nasalization (/m, n/): verifies velum lowering with acoustic insertion of nasal pole ($250\text{ Hz}$) and anti-resonance zero ($350\text{ Hz}$).
+  - Frication (/s, f/): verifies turbulent supraglottal noise source shaped by constriction transfer function.
+- Open ASR verification script: `scripts/evaluate_transcription.py` (integrates optional Whisper / wav2vec2 models locally to transcribe and record empirical WER without pre-baked claims).
 
 ---
 

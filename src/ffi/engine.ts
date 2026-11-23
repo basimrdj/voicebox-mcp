@@ -50,13 +50,18 @@ export class ChimeraEngine {
   private static dictionaryLoaded = false;
 
   constructor(sampleRate: number = 48000.0) {
+    if (!symbols) {
+      throw new Error(
+        "ChimeraEngine cannot be initialized: libchimera_wasm dynamic library is not loaded. Build the Rust engine or switch to the neural DDSP synthesizer."
+      );
+    }
     this.sampleRate = sampleRate;
     this.handle = symbols.engine_new(sampleRate) as number;
     ChimeraEngine.ensureDictionary();
   }
 
   static ensureDictionary(): void {
-    if (this.dictionaryLoaded) return;
+    if (this.dictionaryLoaded || !symbols) return;
     try {
       // 1. CMUdict for English
       const cmuCandidates = [

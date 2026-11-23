@@ -63,9 +63,17 @@ export interface UtterancePlanOptions {
     targetVAD: ContinuousVAD;
   }>;
   baselineF0?: number; // Hz (default 125.0)
+  pitchRangeSemitones?: number;
+  pitchContour?: Array<{ timeMs: number; f0Hz: number }>;
   speakingRate?: number; // 0.5 to 2.0 (default 1.0)
   nonverbal?: NonverbalVocalizationType;
   nonverbalPosition?: "onset" | "mid" | "coda";
+  glottalRd?: number;
+  subglottalPressureCmH2O?: number;
+  breathiness?: number;
+  timbreProfile?: "neutral" | "bright" | "dark" | "resonant" | "breathy";
+  vocalTractLengthCm?: number;
+  speakerEmbedding?: number[];
 }
 
 /**
@@ -86,6 +94,21 @@ export const INTENT_VAD_BASELINES: Record<CommunicativeIntent, ContinuousVAD> = 
   uncertainty: { valence: -0.1, arousal: 0.4, dominance: -0.4 },
   passive_hostility: { valence: -0.6, arousal: 0.45, dominance: 0.75 },
 };
+
+function interpolateContour(contour: Array<{ timeMs: number; f0Hz: number }>, timeMs: number): number {
+  if (contour.length === 0) return 125.0;
+  if (contour.length === 1 || timeMs <= contour[0].timeMs) return contour[0].f0Hz;
+  if (timeMs >= contour[contour.length - 1].timeMs) return contour[contour.length - 1].f0Hz;
+  for (let i = 0; i < contour.length - 1; i++) {
+    const p0 = contour[i];
+    const p1 = contour[i + 1];
+    if (timeMs >= p0.timeMs && timeMs <= p1.timeMs) {
+      const alpha = (timeMs - p0.timeMs) / Math.max(0.001, p1.timeMs - p0.timeMs);
+      return p0.f0Hz + alpha * (p1.f0Hz - p0.f0Hz);
+    }
+  }
+  return contour[0].f0Hz;
+}
 
 export class ProsodyPlanner {
   /**
@@ -212,8 +235,23 @@ export class ProsodyPlanner {
 
       // Subglottal Pressure ($P_s$)
       let framePs = phys.pressure;
+      if (options.subglottalPressureCmH2O !== undefined) {
+        framePs = options.subglottalPressureCmH2O;
+      }
       if (intent === "relief" && progress > 0.80) {
         framePs *= (1.0 - 0.50 * ((progress - 0.80) / 0.20)); // Coda sigh dump
+      }
+
+      // Glottal Rd & Breathiness
+      let frameRd = options.glottalRd !== undefined ? options.glottalRd : phys.glottalRd;
+      let frameBreathiness = Math.max(phys.breathiness, pFrame.aspiration);
+      if (options.breathiness !== undefined) {
+        frameBreathiness = Math.max(frameBreathiness, options.breathiness);
+      }
+
+      // Pitch Contour ($F_0$) override
+      if (options.pitchContour && options.pitchContour.length > 0) {
+        frameF0 = interpolateContour(options.pitchContour, frameTimeMs);
       }
 
       // Shift articulators with emotional posture offsets
@@ -222,10 +260,28 @@ export class ProsodyPlanner {
       articulators.larynx = Math.max(-1.5, Math.min(1.5, articulators.larynx + phys.larynxOffset));
       articulators.epilarynx = Math.max(0.0, Math.min(1.0, articulators.epilarynx + (phys.epilarynx - 0.1)));
 
+      // Timbre and Vocal Tract Scaling
+      let timbreLengthMultiplier = 1.0;
+      let timbreBandwidthMultiplier = 1.0;
+      if (options.timbreProfile === "bright") {
+        timbreLengthMultiplier = 0.94;
+        timbreBandwidthMultiplier = 0.90;
+      } else if (options.timbreProfile === "dark") {
+        timbreLengthMultiplier = 1.06;
+        timbreBandwidthMultiplier = 1.10;
+      } else if (options.timbreProfile === "resonant") {
+        timbreBandwidthMultiplier = 0.75;
+      } else if (options.timbreProfile === "breathy") {
+        frameBreathiness = Math.min(1.0, frameBreathiness + 0.20);
+        frameRd = Math.min(3.0, frameRd + 0.35);
+      }
+
       // Moving Formants perturbed by tract length shift
       const deltaLength = -articulators.larynx * 1.2 + articulators.lipProtrusion * 1.0;
-      const lengthScale = 17.5 / Math.max(12.0, Math.min(22.0, 17.5 + deltaLength));
+      const baseTractLength = options.vocalTractLengthCm ?? 17.5;
+      const lengthScale = (17.5 / Math.max(10.0, Math.min(24.0, baseTractLength + deltaLength))) * (1.0 / timbreLengthMultiplier);
       const formants = pFrame.acoustics.formants.map(f => f * lengthScale);
+      const bandwidths = pFrame.acoustics.bandwidths.map(b => b * timbreBandwidthMultiplier);
 
       trajectory.addFrame({
         timeMs: frameTimeMs,
@@ -237,15 +293,15 @@ export class ProsodyPlanner {
           ...DEFAULT_GLOTTAL,
           f0: frameF0,
           subglottalPressure: framePs,
-          glottalRd: phys.glottalRd,
-          breathiness: Math.max(phys.breathiness, pFrame.aspiration),
+          glottalRd: frameRd,
+          breathiness: frameBreathiness,
           tremorFrequency: phys.tremorFreq,
           tremorDepth: phys.tremorDepth,
           voiced: isVoiced,
         },
         acoustics: {
           formants: formants as any,
-          bandwidths: pFrame.acoustics.bandwidths as any,
+          bandwidths: bandwidths as any,
           nasalPoles: pFrame.acoustics.nasalPoles,
           nasalZeros: pFrame.acoustics.nasalZeros,
         },

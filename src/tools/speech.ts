@@ -304,7 +304,7 @@ export function registerSpeechTools(engine: ChimeraEngine) {
         const physicalSamples = engine.render(totalFrames);
         const wavPath = saveToVault(physicalSamples, engine.sampleRate, `physical_${emotion}`);
         const perception = analyzeAudio(physicalSamples, engine.sampleRate);
-        const base64Wav = readFileSync(wavPath).toString("base64");
+        const base64Wav = wavPath.base64Wav;
 
         return {
           content: [

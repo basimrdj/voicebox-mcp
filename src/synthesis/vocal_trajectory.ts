@@ -37,7 +37,11 @@ export interface ArticulatoryPosition {
   velum: number;        // -1.0 (tight velopharyngeal seal) to 1.0 (lowered / nasal)
   larynx: number;       // -1.5 (lowered / lengthened tract) to 1.5 (elevated / shortened tract)
   epilarynx: number;    // 0.0 (open) to 1.0 (constricted / twang / singer's resonance)
+  tongueRoot?: number;  // Advanced / retracted tongue root (+ATR / -ATR)
 }
+
+export type ArticulatorPosition = ArticulatoryPosition;
+export type ArticulatorPositions = ArticulatoryPosition;
 
 export interface GlottalSourceState {
   f0: number;                  // Fundamental frequency in Hz
@@ -108,6 +112,7 @@ export const DEFAULT_ARTICULATORS: ArticulatoryPosition = {
   velum: -0.8, // sealed
   larynx: 0.0,
   epilarynx: 0.1,
+  tongueRoot: 0.0,
 };
 
 export const DEFAULT_GLOTTAL: GlottalSourceState = {
@@ -324,6 +329,7 @@ export class VocalTrajectory {
       velum: lerp(f0.articulators.velum, f1.articulators.velum),
       larynx: lerp(f0.articulators.larynx, f1.articulators.larynx),
       epilarynx: lerp(f0.articulators.epilarynx, f1.articulators.epilarynx),
+      tongueRoot: lerp(f0.articulators.tongueRoot ?? 0.0, f1.articulators.tongueRoot ?? 0.0),
     };
 
     // Interpolate Glottal Source

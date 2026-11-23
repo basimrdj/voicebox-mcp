@@ -132,4 +132,43 @@ describe("Milestone 2 & 3: Universal Vocal Performance Representation", () => {
     expect(restored.performance.intent).toBe("sarcasm");
     expect(restored.performance.wordModifiers?.length).toBe(2);
   });
+
+  it("actively modulates acoustics when custom glottalRd, breathiness, and pitchContour are passed", async () => {
+    const text = "Acoustic control verification.";
+
+    // Baseline pressed phonation (low Rd = 0.45, tense glottis, high spectral centroid)
+    const pressed = await VoiceBox.perform({
+      linguistic: text,
+      identity: { baselineF0: 120.0 },
+      performance: { glottalRd: 0.45, breathiness: 0.0 },
+      rendering: { backend: "ddsp" },
+    });
+
+    // Breathy phonation (high Rd = 1.80, breathiness = 0.6) -> lower HNR due to turbulence
+    const breathy = await VoiceBox.perform({
+      linguistic: text,
+      identity: { baselineF0: 120.0 },
+      performance: { glottalRd: 1.80, breathiness: 0.6 },
+      rendering: { backend: "ddsp" },
+    });
+    expect(pressed.audioResult.perception.hnrDb).toBeGreaterThan(breathy.audioResult.perception.hnrDb);
+
+    // High pitch contour (220 Hz constant) -> higher f0
+    const highPitch = await VoiceBox.perform({
+      linguistic: text,
+      identity: { baselineF0: 120.0 },
+      performance: {
+        pitchContour: [
+          { timeMs: 0, f0Hz: 220.0 },
+          { timeMs: 3000, f0Hz: 220.0 },
+        ],
+      },
+      rendering: { backend: "ddsp" },
+    });
+    expect(highPitch.audioResult.perception.f0).toBeGreaterThan(180.0);
+
+    // Accurate capability reporting reflects actual backend
+    expect(pressed.backendCapabilities.latencyRatingMs).toBeLessThanOrEqual(20);
+    expect(pressed.supportedControlsSummary.pitchContour).toBe("exact");
+  });
 });

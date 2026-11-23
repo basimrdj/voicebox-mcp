@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test-macos:
+    name: Test (macOS)
+    runs-on: macos-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install Dependencies
+        run: bun install
+
+      - name: Type Check (TypeScript)
+        run: bun x tsc --noEmit
+
+      - name: Run Full Test Suite
+        run: bun test
+
+  test-linux:
+    name: Test (Ubuntu Linux)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build CHIMERA Native Library (Linux)
+        run: |
+          cargo build --release --manifest-path reference/chimera-vocal-synth/Cargo.toml
+          mkdir -p lib
+          find reference/chimera-vocal-synth/target/release -name "libchimera_wasm.so" -exec cp {} lib/ \;
+
+      - name: Install Dependencies
+        run: bun install
+
+      - name: Type Check (TypeScript)
+        run: bun x tsc --noEmit
+
+      - name: Run Full Test Suite
+        run: bun test

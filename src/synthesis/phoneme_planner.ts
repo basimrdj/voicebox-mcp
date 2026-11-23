@@ -33,8 +33,8 @@ export interface ScheduledPhonemeFrame {
   acoustics: {
     formants: number[];
     bandwidths: number[];
-    nasalPoles: number[];
-    nasalZeros: number[];
+    nasalPoles: [number, number];
+    nasalZeros: [number, number];
   };
 }
 
@@ -164,8 +164,8 @@ export class PhonemePlanner {
       }
 
       // Add nasal coupling poles/zeros if velum is open
-      const nasalPoles = velumOpen ? [250, 1050, 2600] : [250, 1000];
-      const nasalZeros = velumOpen ? [380, 1300, 2800] : [350, 1200];
+      const nasalPoles: [number, number] = velumOpen ? [250, 1050] : [250, 1000];
+      const nasalZeros: [number, number] = velumOpen ? [380, 1300] : [350, 1200];
 
       // Identify associated word
       let wordAtTime = "[pause]";
