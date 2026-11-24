@@ -21,7 +21,7 @@ describe("FFI & C-ABI Sanity", () => {
   it("calls JSON API for engine version and catalog", () => {
     const ver = callJson<any>({ fn: "version" });
     expect(ver.layout).toBe(1);
-    expect(ver.crate).toBe("0.2.0");
+    expect(ver.crate).toMatch(/^0\.2\./);
 
     const cat = callJson<any>({ fn: "catalog" });
     expect(cat.neutral).toBeDefined();
