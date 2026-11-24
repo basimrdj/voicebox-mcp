@@ -1,35 +1,44 @@
 /**
  * Typed Bun FFI bindings to libchimera_wasm (C-ABI).
- * Supports both macOS (.dylib) and Linux (.so).
+ * Supports macOS (.dylib), Linux (.so), and Windows (.dll).
  */
 import { dlopen, FFIType, toArrayBuffer } from "bun:ffi";
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 
-function findLibraryPath(): string | null {
+export function findLibraryPath(): string | null {
   if (process.env.CHIMERA_LIB_PATH && existsSync(process.env.CHIMERA_LIB_PATH)) {
     return process.env.CHIMERA_LIB_PATH;
   }
 
   const isMac = process.platform === "darwin";
-  const libName = isMac ? "libchimera_wasm.dylib" : "libchimera_wasm.so";
+  const isWindows = process.platform === "win32";
+  const libNames = isMac
+    ? ["libchimera_wasm.dylib"]
+    : isWindows
+      ? ["chimera_wasm.dll", "libchimera_wasm.dll"]
+      : ["libchimera_wasm.so"];
 
-  const candidates = [
-    resolve(process.cwd(), "lib", libName),
-    resolve(import.meta.dir, "../../lib", libName),
-    resolve(process.cwd(), "reference/chimera-vocal-synth/target/release", libName),
-    resolve(process.cwd(), "target/release", libName),
-    resolve(process.cwd(), libName),
-    resolve("/home/user/chimera/target/release", libName),
-    resolve("/home/user/workspace/target/release", libName),
-    resolve("/tmp", libName),
-    resolve(import.meta.dir, "../../reference/chimera-vocal-synth/target/release", libName),
-    resolve(import.meta.dir, "../../../reference/chimera-vocal-synth/target/release", libName),
+  const searchDirs = [
+    resolve(process.cwd(), "lib"),
+    resolve(import.meta.dir, "../../lib"),
+    resolve(process.cwd(), "lib", isWindows ? "x86_64-windows" : isMac ? "arm64-macos" : "x86_64-linux"),
+    resolve(process.cwd(), "reference/chimera-vocal-synth/target/release"),
+    resolve(process.cwd(), "target/release"),
+    resolve(process.cwd()),
+    resolve("/home/user/chimera/target/release"),
+    resolve("/home/user/workspace/target/release"),
+    resolve("/tmp"),
+    resolve(import.meta.dir, "../../reference/chimera-vocal-synth/target/release"),
+    resolve(import.meta.dir, "../../../reference/chimera-vocal-synth/target/release"),
   ];
 
-  for (const c of candidates) {
-    if (existsSync(c)) {
-      return c;
+  for (const dir of searchDirs) {
+    for (const libName of libNames) {
+      const candidate = resolve(dir, libName);
+      if (existsSync(candidate)) {
+        return candidate;
+      }
     }
   }
 

@@ -1,0 +1,105 @@
+name: Release & Pre-Built Binaries
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Release Tag (e.g. v2.0.0)'
+        required: true
+        default: 'v2.0.0'
+
+permissions:
+  contents: write
+
+jobs:
+  build-binaries:
+    name: Build Native Waveguide (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact_name: libchimera_wasm-linux-x86_64.so
+            binary_src: libchimera_wasm.so
+            target_os: linux
+          - os: macos-latest
+            artifact_name: libchimera_wasm-macos-arm64.dylib
+            binary_src: libchimera_wasm.dylib
+            target_os: macos
+          - os: windows-latest
+            artifact_name: chimera_wasm-windows-x86_64.dll
+            binary_src: chimera_wasm.dll
+            target_os: windows
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Checkout CHIMERA Reference Engine
+        run: |
+          git clone --depth 1 https://github.com/jamesondh/chimera-vocal-synth.git reference/chimera-vocal-synth
+
+      - name: Install Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build Native cdylib
+        shell: bash
+        run: |
+          cargo build --release -p chimera-wasm --manifest-path reference/chimera-vocal-synth/Cargo.toml
+          mkdir -p dist_release
+          if [ "${{ matrix.target_os }}" = "windows" ]; then
+            find reference/chimera-vocal-synth/target/release -name "*chimera_wasm*.dll" -exec cp {} dist_release/${{ matrix.artifact_name }} \;
+            cp dist_release/${{ matrix.artifact_name }} dist_release/chimera_wasm.dll
+          elif [ "${{ matrix.target_os }}" = "macos" ]; then
+            if [ -f "lib/libchimera_wasm.dylib" ]; then
+              cp lib/libchimera_wasm.dylib dist_release/${{ matrix.artifact_name }}
+              cp lib/libchimera_wasm.dylib dist_release/libchimera_wasm.dylib
+            else
+              find reference/chimera-vocal-synth/target/release -name "*chimera_wasm*.dylib" -exec cp {} dist_release/${{ matrix.artifact_name }} \;
+              cp dist_release/${{ matrix.artifact_name }} dist_release/libchimera_wasm.dylib
+            fi
+          else
+            find reference/chimera-vocal-synth/target/release -name "*chimera_wasm*.so" -exec cp {} dist_release/${{ matrix.artifact_name }} \;
+            cp dist_release/${{ matrix.artifact_name }} dist_release/libchimera_wasm.so
+          fi
+          ls -la dist_release/
+
+      - name: Upload Single Binary Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: dist_release/*
+
+  publish-release:
+    name: Publish GitHub Release Assets
+    needs: build-binaries
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: all_artifacts
+          merge-multiple: true
+
+      - name: Inspect Downloaded Release Binaries
+        run: |
+          ls -la all_artifacts/
+          sha256sum all_artifacts/* > all_artifacts/SHA256SUMS.txt
+          cat all_artifacts/SHA256SUMS.txt
+
+      - name: Publish to GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
+        with:
+          tag_name: ${{ github.event.inputs.tag_name || github.ref_name }}
+          name: VoiceBox ${{ github.event.inputs.tag_name || github.ref_name }}
+          files: all_artifacts/*
+          draft: false
+          prerelease: false

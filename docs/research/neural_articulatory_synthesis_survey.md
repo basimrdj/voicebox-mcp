@@ -67,6 +67,6 @@ This document audits modern neural and physical speech synthesis systems, their 
 | **CosyVoice 2 / 2.5** | Multi-lingual LLM-based TTS (Alibaba) | Exceptional | Fast streaming chunks | Apache 2.0 (Permissive) | Primary target for CoCoEmo activation steering |
 | **IndexTTS 2 / 2.5** | Autoregressive Diffusion (Bilibili) | Very High | Moderate | **Bilibili Non-Commercial / Custom License** | Restricted; must remain an optional external plugin, not bundled default |
 | **Chatterbox Nano/Turbo** | Lightweight Neural TTS (Resemble AI) | Good | Ultra-fast (<15ms latency) | Apache 2.0 | Best candidate for low-resource CPU / edge deployment |
-| **VibeVoice Realtime 0.5B** | 4-bit Quantized MLX Flow Matching | High naturalness | Real-time on Apple Silicon | MIT / Apache 2.0 compatible | Currently integrated local default on macOS |
+| **VibeVoice Realtime 0.5B** | MLX Flow Matching & PyTorch / Transformers | High naturalness | Real-time (Apple Silicon, CUDA, AMD ROCm) | MIT / Apache 2.0 compatible | Multi-platform neural subtext baseline |
 | **CHIMERA C-Engine** | Native Transmission-Line Physical Model | Synthetic / Robotic | Sub-millisecond (<0.5ms) | MIT (Jameson Hodge upstream attribution) | Deterministic physical baseline & articulatory testbed |
 | **HiFi-Glot Native** | Differentiable Resonator Filter Bank | Clear Formants | Zero Latency (DSP) | Apache 2.0 | Physical acoustic realization layer |

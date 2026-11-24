@@ -173,6 +173,197 @@ def apply_emotion_postprocessing(
     except Exception as e:
         sys.stderr.write(f"[neural_tts] Postprocessing warning: {e}\n")
 
+def get_pytorch_device():
+    """
+    Detects compute device and optimal precision for PyTorch:
+    - NVIDIA CUDA (bfloat16/float16)
+    - AMD Radeon ROCm via HIP (bfloat16/float16)
+    - Apple Silicon MPS (float32)
+    - CPU fallback (float32)
+    """
+    try:
+        import torch
+        if torch.cuda.is_available():
+            is_rocm = getattr(torch.version, "hip", None) is not None
+            dev_name = torch.cuda.get_device_name(0) if torch.cuda.device_count() > 0 else "GPU"
+            backend_label = f"ROCm (AMD Radeon: {dev_name})" if is_rocm else f"CUDA ({dev_name})"
+            sys.stderr.write(f"[neural_tts] PyTorch acceleration: {backend_label}\n")
+            is_bf16 = hasattr(torch.cuda, "is_bf16_supported") and torch.cuda.is_bf16_supported()
+            return torch.device("cuda"), torch.bfloat16 if is_bf16 else torch.float16
+        elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+            sys.stderr.write("[neural_tts] PyTorch acceleration: Apple Silicon MPS\n")
+            return torch.device("mps"), torch.float32
+        else:
+            sys.stderr.write("[neural_tts] PyTorch compute: CPU\n")
+            return torch.device("cpu"), torch.float32
+    except Exception as e:
+        sys.stderr.write(f"[neural_tts] Device detection error: {e}\n")
+        return None, None
+
+def generate_mlx_speech(
+    synth_text: str,
+    output_path: str,
+    voice: str,
+    speed: float,
+    lang: str,
+    subtext: str = None
+) -> bool:
+    """
+    Apple Silicon MLX neural TTS synthesis using quantized VibeVoice-Realtime-0.5B.
+    """
+    try:
+        from mlx_audio.tts.generate import generate_audio
+        tmpdir = tempfile.mkdtemp()
+        instruct_prompt = SUBTEXT_INSTRUCTIONS.get(subtext) if subtext else None
+        try:
+            kwargs = {
+                "text": synth_text,
+                "model": "mlx-community/VibeVoice-Realtime-0.5B-4bit",
+                "voice": voice,
+                "speed": speed,
+                "lang_code": lang,
+                "output_path": tmpdir,
+                "file_prefix": "speech",
+                "verbose": False
+            }
+            if instruct_prompt:
+                try:
+                    generate_audio(**kwargs, instruct=instruct_prompt)
+                except TypeError:
+                    generate_audio(**kwargs)
+            else:
+                generate_audio(**kwargs)
+            candidates = [os.path.join(tmpdir, f) for f in os.listdir(tmpdir) if f.endswith(".wav")]
+            if candidates:
+                shutil.move(candidates[0], output_path)
+                return True
+        finally:
+            if os.path.exists(tmpdir):
+                shutil.rmtree(tmpdir, ignore_errors=True)
+    except Exception as e:
+        sys.stderr.write(f"[neural_tts] MLX synthesis unavailable: {e}\n")
+    return False
+
+def generate_pytorch_transformers(
+    synth_text: str,
+    output_path: str,
+    voice: str = "en-Carter_man",
+    speed: float = 1.0,
+    lang: str = "en",
+    subtext: str = None
+) -> bool:
+    """
+    Cross-platform neural speech synthesis using PyTorch and Hugging Face Transformers.
+    Runs Microsoft VibeVoice-Realtime-0.5B, SpeechT5, or MMS on Linux (NVIDIA CUDA,
+    AMD Radeon ROCm), Windows, and macOS.
+    """
+    try:
+        import torch
+        device, dtype = get_pytorch_device()
+        if device is None:
+            return False
+
+        # 1. Try Microsoft VibeVoice official streaming inference
+        try:
+            from vibevoice.modular.modeling_vibevoice_streaming_inference import VibeVoiceStreamingForConditionalGenerationInference
+            from vibevoice.processor.vibevoice_streaming_processor import VibeVoiceStreamingProcessor
+
+            model_id = os.environ.get("VIBEVOICE_MODEL_ID", "microsoft/VibeVoice-Realtime-0.5B")
+            speaker = voice.replace("en-", "").split("_")[0]
+
+            processor = VibeVoiceStreamingProcessor.from_pretrained(model_id)
+            model = VibeVoiceStreamingForConditionalGenerationInference.from_pretrained(
+                model_id,
+                torch_dtype=dtype,
+                device_map="auto" if device.type == "cuda" else None
+            )
+            if device.type != "cuda":
+                model = model.to(device)
+
+            inputs = processor(text=synth_text, voice=speaker, return_tensors="pt")
+            inputs = {k: v.to(device) if hasattr(v, "to") else v for k, v in inputs.items()}
+
+            with torch.no_grad():
+                output = model.generate(**inputs)
+                audio_arr = output.audio.cpu().numpy()
+                sr = getattr(output, "sampling_rate", 24000)
+                sf.write(output_path, audio_arr, sr)
+                return True
+        except Exception as e_vibe:
+            sys.stderr.write(f"[neural_tts] VibeVoice custom module not initialized: {e_vibe}\n")
+
+        # 2. Try Hugging Face Transformers TTS pipeline
+        try:
+            from transformers import pipeline
+            tts_model = os.environ.get("TRANSFORMERS_TTS_MODEL", "facebook/mms-tts-eng")
+            pipe = pipeline("text-to-speech", model=tts_model, device=0 if device.type == "cuda" else -1)
+            result = pipe(synth_text)
+            if "audio" in result and "sampling_rate" in result:
+                sf.write(output_path, result["audio"], result["sampling_rate"])
+                return True
+        except Exception as e_hf:
+            sys.stderr.write(f"[neural_tts] Transformers TTS pipeline not loaded: {e_hf}\n")
+
+    except ImportError:
+        pass
+    except Exception as e:
+        sys.stderr.write(f"[neural_tts] PyTorch synthesis failed: {e}\n")
+    return False
+
+def generate_system_speech(
+    synth_text: str,
+    output_path: str,
+    speed: float = 1.0
+) -> bool:
+    """
+    Deterministic OS-native speech synthesizer fallback across macOS, Linux, and Windows.
+    Produces clean 16-bit 24kHz WAV.
+    """
+    import subprocess
+    # macOS: say + afconvert
+    if sys.platform == "darwin":
+        try:
+            aiff_path = output_path.replace(".wav", ".aiff")
+            sys_voice = "Daniel"
+            cmd = ["say", "-v", sys_voice, "-r", str(int(175 * speed)), "-o", aiff_path, synth_text]
+            res = subprocess.run(cmd, capture_output=True)
+            if res.returncode != 0:
+                cmd = ["say", "-r", str(int(175 * speed)), "-o", aiff_path, synth_text]
+                res = subprocess.run(cmd, capture_output=True)
+            if res.returncode == 0 and os.path.exists(aiff_path):
+                conv = subprocess.run(["afconvert", "-f", "WAVE", "-d", "LEI16@24000", aiff_path, output_path], capture_output=True)
+                if os.path.exists(aiff_path):
+                    os.remove(aiff_path)
+                return conv.returncode == 0 and os.path.exists(output_path)
+        except Exception as e:
+            sys.stderr.write(f"[neural_tts] macOS say fallback failed: {e}\n")
+
+    # Linux: espeak-ng or espeak
+    elif sys.platform.startswith("linux"):
+        for binary in ["espeak-ng", "espeak"]:
+            if shutil.which(binary):
+                try:
+                    cmd = [binary, "-s", str(int(160 * speed)), "-w", output_path, synth_text]
+                    res = subprocess.run(cmd, capture_output=True)
+                    if res.returncode == 0 and os.path.exists(output_path):
+                        return True
+                except Exception as e:
+                    sys.stderr.write(f"[neural_tts] Linux {binary} failed: {e}\n")
+
+    # Windows: PowerShell SAPI SpVoice
+    elif sys.platform == "win32":
+        try:
+            safe_text = synth_text.replace("'", "''")
+            rate = int((speed - 1.0) * 5)
+            ps_script = f"Add-Type -AssemblyName System.Speech; $s = New-Object System.Speech.Synthesis.SpeechSynthesizer; $s.Rate = {rate}; $s.SetOutputToWaveFile('{output_path}'); $s.Speak('{safe_text}'); $s.Dispose();"
+            res = subprocess.run(["powershell", "-NoProfile", "-NonInteractive", "-Command", ps_script], capture_output=True)
+            if res.returncode == 0 and os.path.exists(output_path):
+                return True
+        except Exception as e:
+            sys.stderr.write(f"[neural_tts] Windows SAPI failed: {e}\n")
+
+    return False
+
 def generate_speech(
     text: str,
     output_path: str,
@@ -182,7 +373,7 @@ def generate_speech(
     emotion: str = "neutral",
     subtext: str = None,
     subtext_intensity: float = 0.7,
-):
+) -> bool:
     os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
 
     if lang != "en":
@@ -215,62 +406,21 @@ def generate_speech(
     # Format text prompt for subtext prosodic phrasing
     synth_text = format_subtext_prompt(text, subtext) if subtext else text
 
-    # 1. Try MLX Audio Neural Synthesis
-    try:
-        from mlx_audio.tts.generate import generate_audio
-        tmpdir = tempfile.mkdtemp()
-        instruct_prompt = SUBTEXT_INSTRUCTIONS.get(subtext) if subtext else None
-        try:
-            kwargs = {
-                "text": synth_text,
-                "model": "mlx-community/VibeVoice-Realtime-0.5B-4bit",
-                "voice": voice,
-                "speed": speed,
-                "lang_code": lang,
-                "output_path": tmpdir,
-                "file_prefix": "speech",
-                "verbose": False
-            }
-            if instruct_prompt:
-                try:
-                    generate_audio(**kwargs, instruct=instruct_prompt)
-                except TypeError:
-                    generate_audio(**kwargs)
-            else:
-                generate_audio(**kwargs)
-            candidates = [os.path.join(tmpdir, f) for f in os.listdir(tmpdir) if f.endswith(".wav")]
-            if candidates:
-                shutil.move(candidates[0], output_path)
-                apply_emotion_postprocessing(output_path, emotion, subtext, subtext_intensity)
-                return True
-        finally:
-            if os.path.exists(tmpdir):
-                shutil.rmtree(tmpdir, ignore_errors=True)
-    except Exception as e:
-        sys.stderr.write(f"[neural_tts] MLX synthesis unavailable: {e}\n")
-
-    # 2. Try macOS say command with unified speaker vocal tract identity
+    # 1. Try MLX Audio Neural Synthesis (macOS Apple Silicon native acceleration)
     if sys.platform == "darwin":
-        try:
-            import subprocess
-            aiff_path = output_path.replace(".wav", ".aiff")
-            sys_voice = "Daniel"
+        if generate_mlx_speech(synth_text, output_path, voice, speed, lang, subtext):
+            apply_emotion_postprocessing(output_path, emotion, subtext, subtext_intensity)
+            return True
 
-            cmd = ["say", "-v", sys_voice, "-r", str(int(175 * speed)), "-o", aiff_path, synth_text]
-            res = subprocess.run(cmd, capture_output=True)
-            if res.returncode != 0:
-                cmd = ["say", "-r", str(int(175 * speed)), "-o", aiff_path, synth_text]
-                res = subprocess.run(cmd, capture_output=True)
+    # 2. Try PyTorch + Transformers (Linux CUDA / ROCm Radeon, Windows, macOS MPS, CPU)
+    if generate_pytorch_transformers(synth_text, output_path, voice, speed, lang, subtext):
+        apply_emotion_postprocessing(output_path, emotion, subtext, subtext_intensity)
+        return True
 
-            if res.returncode == 0 and os.path.exists(aiff_path):
-                conv = subprocess.run(["afconvert", "-f", "WAVE", "-d", "LEI16@24000", aiff_path, output_path], capture_output=True)
-                if os.path.exists(aiff_path):
-                    os.remove(aiff_path)
-                if conv.returncode == 0 and os.path.exists(output_path):
-                    apply_emotion_postprocessing(output_path, emotion, subtext, subtext_intensity)
-                    return True
-        except Exception as e:
-            sys.stderr.write(f"[neural_tts] say fallback failed: {e}\n")
+    # 3. Try System Speech Fallback (macOS say, Linux espeak-ng, Windows SAPI)
+    if generate_system_speech(synth_text, output_path, speed):
+        apply_emotion_postprocessing(output_path, emotion, subtext, subtext_intensity)
+        return True
 
     return False
 

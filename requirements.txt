@@ -1,7 +1,13 @@
-# Optional dependencies for neural subtext processing & LPC formant analysis
+# Core audio processing & biophysical acoustic filtering
 numpy>=1.24.0
 scipy>=1.10.0
+soundfile>=0.12.0
 
-# Optional hardware-accelerated ML backends (for neural TTS path):
-# mlx>=0.10.0   # Apple Silicon MLX
-# torch>=2.1.0  # PyTorch
+# Optional Neural TTS & Subtext Reshaping backends:
+# 1. macOS (Apple Silicon MLX):
+#    pip install mlx mlx-audio
+# 2. Linux & Windows (PyTorch / NVIDIA CUDA):
+#    pip install torch torchaudio transformers
+# 3. Linux & Windows (AMD Radeon GPUs with ROCm):
+#    pip install torch torchaudio --index-url https://download.pytorch.org/whl/rocm6.2
+#    pip install transformers

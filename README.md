@@ -100,31 +100,32 @@ flowchart TD
 
 ### 1. Installation & Platform Setup
 
-#### macOS (Apple Silicon)
-A pre-compiled native library (`lib/libchimera_wasm.dylib`) is included for Apple Silicon:
+VoiceBox is fully cross-platform and runs on **macOS**, **Linux**, and **Windows**.
+
+#### 🚀 Fast Setup (Skip the Rust Build with Pre-Built Binaries)
+GitHub Actions CI automatically builds and publishes release binaries for Linux (`libchimera_wasm.so`), macOS (`libchimera_wasm.dylib`), and Windows (`chimera_wasm.dll`). You do **not** need Rust or Cargo installed.
+
 ```bash
 git clone https://github.com/basimrdj/voicebox-mcp.git
 cd voicebox-mcp
 bun install
-```
 
-#### Linux (`x86_64` / `aarch64`)
-On Linux environments, compile the shared library (`libchimera_wasm.so`) from the upstream CHIMERA Rust engine:
-```bash
-# Clone upstream and build the C-ABI shared library
-git clone https://github.com/jamesondh/chimera-vocal-synth.git reference/chimera-vocal-synth
-cd reference/chimera-vocal-synth && cargo build --release -p chimera-wasm
-cp target/release/libchimera_wasm.so ../../lib/
-cd ../..
-bun install
+# Automatically fetch the pre-built native waveguide library for your OS:
+bun run setup:native
 ```
-*(Alternatively, set `CHIMERA_LIB_PATH=/path/to/libchimera_wasm.so`)*
+*(Alternatively, you can build from source: `git clone --depth 1 https://github.com/jamesondh/chimera-vocal-synth.git reference/chimera-vocal-synth && cargo build --release -p chimera-wasm --manifest-path reference/chimera-vocal-synth/Cargo.toml && mkdir -p lib && cp reference/chimera-vocal-synth/target/release/libchimera_wasm.* lib/`)*
 
-#### Synthesis Tiers & Optional Dependencies
-VoiceBox employs a tiered synthesis fallback pipeline:
-1. **Native Biophysical Waveguide (Primary, Local)**: Uses Bun FFI + `libchimera_wasm` for real-time 48 kHz transmission-line synthesis with zero external dependencies.
-2. **Neural Subtext Conditioning (Optional)**: If running high-level neural subtext reshaping via `src/synthesis/neural_tts.py`, install Python packages: `pip install -r requirements.txt` (NumPy, SciPy, and optional MLX/PyTorch).
-3. **System Fallback**: On macOS, if neural dependencies are unavailable during high-level TTS calls, the engine can fall back to the system speech synthesizer (`say`) before applying LPC formant filtering and subtext prosody reshaping.
+#### 🧠 Cross-Platform Neural Subtext Layer (Apple Silicon, NVIDIA CUDA, AMD Radeon ROCm)
+The neural subtext generation layer (`src/synthesis/neural_tts.py`) auto-detects host hardware:
+- **macOS (Apple Silicon)**: Quantized 4-bit MLX flow matching (`mlx-community/VibeVoice-Realtime-0.5B-4bit`).
+- **Linux & Windows (NVIDIA CUDA)**: Microsoft's official `microsoft/VibeVoice-Realtime-0.5B` via PyTorch and Transformers.
+- **Linux & Windows (AMD Radeon GPUs with ROCm)**: Native acceleration via PyTorch ROCm/HIP. When `torch.version.hip` is detected, neural synthesis routes directly to Radeon compute cores:
+  ```bash
+  # AMD Radeon ROCm PyTorch:
+  pip install torch torchaudio --index-url https://download.pytorch.org/whl/rocm6.2
+  pip install transformers soundfile scipy
+  ```
+- **Universal Fallback**: If GPU weights are absent, VoiceBox falls back gracefully to CPU PyTorch or OS speech synthesis (`say` on macOS, `espeak-ng` on Linux, `SAPI` on Windows) while applying the identical biophysical acoustic filters ($R_d$ glottal spectral tilt, neuromuscular tremor, respiratory sigh dump, vocal fry).
 
 ---
 

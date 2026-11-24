@@ -13,7 +13,9 @@
   "private": true,
   "scripts": {
     "test": "bun test tests/*.test.ts",
-    "start": "bun run src/index.ts"
+    "start": "bun run src/index.ts",
+    "typecheck": "bun x tsc --noEmit",
+    "setup:native": "python3 scripts/download_prebuilt.py"
   },
   "devDependencies": {
     "@types/bun": "latest"

@@ -28,6 +28,14 @@ jobs:
       - name: Run Full Test Suite
         run: bun test
 
+      - name: Upload macOS Dynamic Library Artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: libchimera_wasm-macos-arm64
+          path: lib/libchimera_wasm.dylib
+          if-no-files-found: warn
+
   test-linux:
     name: Test (Ubuntu Linux)
     runs-on: ubuntu-latest
@@ -53,6 +61,14 @@ jobs:
           mkdir -p lib
           find reference/chimera-vocal-synth/target/release -name "libchimera_wasm.so" -exec cp {} lib/ \;
           ls -la lib/
+
+      - name: Upload Linux Shared Library Artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: libchimera_wasm-linux-x86_64
+          path: lib/libchimera_wasm.so
+          if-no-files-found: warn
 
       - name: Install Dependencies
         run: bun install
